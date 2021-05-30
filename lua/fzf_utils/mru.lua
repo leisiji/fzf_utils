@@ -19,7 +19,6 @@ function M.refresh_mru()
   end
 
   a.async_void(function ()
-    print('fzf_mru')
     local res = f .. '\n'
     local i, p = 1, 1
     local data = a.await(u.readfile(mru))
@@ -47,7 +46,6 @@ function M.refresh_mru()
       res = string.sub(res, 1, i)
     end
 
-    print(res)
     a.await(u.writefile(mru, res))
   end)()
 end
