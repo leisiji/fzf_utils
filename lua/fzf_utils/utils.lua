@@ -75,12 +75,4 @@ M.readfile = async(function (path)
   return data
 end)
 
-M.writefile = async(function (path, data)
-  local _, fd = await(a.uv.fs_open(path, "w", 438))
-  if fd == nil then return nil end
-  await(a.uv.fs_write(fd, data, 0))
-  await(a.uv.fs_close(fd))
-  return data
-end)
-
 return M

@@ -4,24 +4,25 @@ local M = {}
 local fn = vim.fn
 local a = require('plenary.async_lib')
 local u = require('fzf_utils.utils')
+local uv = a.uv
 local mru = string.format('%s/%s', fn.stdpath('cache'), 'fzf_mru')
 local fzf_mru_size = 64 * 1024
 
-function M.refresh_mru()
-  if fn.filereadable(mru) == 0 then
-    local file = io.open(mru, "a")
-    io.close(file)
-  end
-
-  local f = fn.expand('%:p')
-  if fn.filereadable(f) == 0 then
-    return
-  end
-
+-- fzf_mru_mtime, fzf_mru_cache is for cache.
+-- When 'fzf_mru' is modified in another vim, it should update the cache
+local function add_file(f)
   a.async_void(function ()
+    local data
     local res = f .. '\n'
     local i, p = 1, 1
-    local data = a.await(u.readfile(mru))
+    local _, fd = a.await(uv.fs_open(mru, "r+", 438))
+    local _, stat = a.await(uv.fs_fstat(fd))
+
+    if vim.g.fzf_mru_mtime ~= stat.mtime.sec then
+      _, data = a.await(a.uv.fs_read(fd, stat.size, 0))
+    else
+      data = vim.g.fzf_mru_cache
+    end
 
     while i <= #data do
       if string.sub(data, i, i) == '\n' then
@@ -46,8 +47,27 @@ function M.refresh_mru()
       res = string.sub(res, 1, i)
     end
 
-    a.await(u.writefile(mru, res))
+    a.await(uv.fs_write(fd, res, 0))
+
+    _, stat = a.await(uv.fs_fstat(fd))
+    vim.g.fzf_mru_cache = res
+    vim.g.fzf_mru_mtime = stat.mtime.sec
+    a.await(uv.fs_close(fd))
   end)()
+end
+
+function M.refresh_mru()
+  local f = fn.expand('%:p')
+  if fn.filereadable(f) == 0 then
+    return
+  end
+
+  if fn.filereadable(mru) == 0 then
+    local file = io.open(mru, "a")
+    io.close(file)
+  end
+
+  add_file(f)
 end
 
 function M.fzf_mru()
