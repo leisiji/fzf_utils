@@ -35,16 +35,17 @@ local function add_file(f)
       i = i + 1
     end
 
+    -- if file not found in mru, then check size and append
     if i > #data then
-      res = res .. data
-    end
-
-    if #res > fzf_mru_size then
-      i = fzf_mru_size
-      while string.sub(res, i, i) ~= '\n' do
-        i = i - 1
+      i = fzf_mru_size - #data
+      if i < #res then
+        while string.sub(res, i, i) ~= '\n' do
+          i = i - 1
+        end
+        res = string.sub(res, 1, i) .. data
+      else
+        res = res .. data
       end
-      res = string.sub(res, 1, i)
     end
 
     a.await(uv.fs_write(fd, res, 0))
