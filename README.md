@@ -19,6 +19,8 @@ A [nvim-fzf](https://github.com/vijaymarupudi/nvim-fzf) plugin that provides:
 
 ## Usage
 
+Example:
+
 ```vim
 FzfCommand --files
 FzfCommand --lines
@@ -40,8 +42,8 @@ FzfCommand --gtags --update
 FzfCommand --rg --all-buffers {word}
 FzfCommand --rg {word} [path]
 
-" if there is only one result, jump to the result
-" and otherwise, the results will be displayed in fzf
+" Lsp provide default jump action, if there is only one result.
+" If there are multiple results, it will first display the results in fzf.
 FzfCommand --lsp jump_def edit
 FzfCommand --lsp jump_def tab drop
 FzfCommand --lsp jump_def vsplit

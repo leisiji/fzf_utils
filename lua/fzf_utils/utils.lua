@@ -40,9 +40,7 @@ end
 
 function M.cmdedit(action, path, row, col)
   -- avoid second load
-  if action ~= 'edit' then
-    vim.cmd(string.format('%s %s', action, path))
-  end
+  vim.cmd(string.format('%s %s', action, path))
   if col ~= nil and row ~= nil then
     vim.api.nvim_win_set_cursor(0, {row, col})
   end
@@ -56,8 +54,8 @@ local key_actions = {
 }
 
 function M.handle_key(key, path, row, col)
-  local action = key_actions[key]
-  M.cmdedit(action or 'tab drop', path, row, col)
+  local action = key_actions[key] or 'tab drop'
+  M.cmdedit(action, path, row, col)
 end
 
 -- file operation
