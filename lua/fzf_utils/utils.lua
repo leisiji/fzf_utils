@@ -15,7 +15,7 @@ local function preview_lines(path, line, fzf_preview_lines)
     start_line = 0
   end
 
-  local cmd = string.format("bat --theme gruvbox-dark -H %i --color always --style numbers --pager never -r %i:%i %s",
+  local cmd = string.format("bat -H %i --color always --style numbers --pager never -r %i:%i %s",
         line, start_line, end_line, path)
   return fn.system(cmd)
 end

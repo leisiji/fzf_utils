@@ -16,6 +16,9 @@ A [nvim-fzf](https://github.com/vijaymarupudi/nvim-fzf) plugin that provides:
 
 - [nvim-fzf](https://github.com/vijaymarupudi/nvim-fzf)
 - [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
+- [bat](https://github.com/sharkdp/bat)
+- [ripgrep](https://github.com/BurntSushi/ripgrep)
+- [fd-find](https://github.com/sharkdp/fd)
 
 ## Usage
 
