@@ -10,7 +10,9 @@ local function lsp_to_vimgrep(r)
   local uri = r.uri or r.targetUri
   local loc = range.start
   local path = fn.fnamemodify(vim.uri_to_fname(uri), ':.')
-  return string.format('%s:%d:%d', path, loc.line + 1, loc.character + 1)
+  local line = vim.lsp.util.get_line(uri, loc.line)
+
+  return string.format('%s:%d:%d %s', path, loc.line + 1, loc.character + 1, line)
 end
 
 local function parse_vimgrep(grep)
