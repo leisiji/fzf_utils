@@ -4,11 +4,32 @@ local fn = vim.fn
 local api = vim.api
 local M = {}
 
+local function get_buf_lines()
+    local lines = api.nvim_buf_get_lines(fn.bufnr(), 0, fn.line('$'), 1)
+    local n = 1
+    local bufs = {}
+
+    for _, line in pairs(lines) do
+      line = string.format('%d %s', n, line)
+      bufs[n] = line
+      n = n + 1
+    end
+
+    return bufs
+end
+
 function M.grep_lines()
   coroutine.wrap(function()
     local path = fn.expand("%:p")
     local col = fn.getcurpos()[3]
-    local choices = fzf('cat -n ' .. path, utils.expect_key..' --tabstop=1 --nth=2.. --preview=' .. utils.get_preview_action(path))
+    local p = utils.expect_key..' --nth=2.. --preview=' .. utils.get_preview_action(path)
+    local cmd
+    if fn.filereadable(path) == 1 then
+      cmd = 'cat -n ' .. path
+    else
+      cmd = get_buf_lines()
+    end
+    local choices = fzf(cmd, p)
     local row = utils.get_leading_num(choices[2])
     utils.handle_key(choices[1], path, row, col)
   end)()
