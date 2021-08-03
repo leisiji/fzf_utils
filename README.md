@@ -60,3 +60,4 @@ FzfCommand --mru
 
 - [LeaderF](https://github.com/Yggdroot/LeaderF)
 - [nvim-fzf-commands](https://github.com/vijaymarupudi/nvim-fzf-commands)
+- [OneTerm.nvim](https://github.com/LoricAndre/OneTerm.nvim)

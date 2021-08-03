@@ -70,7 +70,8 @@ local command = {
   vim = vim_command,
   gtags = gtags_command,
   lsp = lsp_command,
-  mru = require('fzf_utils.mru').fzf_mru
+  mru = require('fzf_utils.mru').fzf_mru,
+  commit = fzf_commands.commit,
 }
 
 function M.load_command(arg1, ...)

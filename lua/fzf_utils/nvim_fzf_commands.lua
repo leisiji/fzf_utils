@@ -88,4 +88,11 @@ function M.Man()
   end)()
 end
 
+function M.commit()
+  coroutine.wrap(function ()
+    local preview = "--preview='git show --color {1}'"
+    fzf("git log --oneline --color", preview)
+  end)()
+end
+
 return M
