@@ -42,7 +42,7 @@ function M.find_files()
 
   if fn.filereadable(cache_file) == 0 then
 
-    if fn.isdirectory(FZF_CAHCE_FILES_DIR) == 0  then
+    if fn.isdirectory(FZF_CAHCE_FILES_DIR) == 0 then
       fn.mkdir(FZF_CAHCE_FILES_DIR)
     end
 
