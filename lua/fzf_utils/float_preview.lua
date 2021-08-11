@@ -1,6 +1,10 @@
 -- references: https://github.com/rmagatti/goto-preview
+-- preview is single instance
 local M = {}
 local u = require('fzf_utils.utils')
+local p = nil
+local w = nil
+local api = vim.api
 
 -- parse preview percentage from fzf env
 local fzf_opt = vim.env['FZF_DEFAULT_OPTS']
@@ -14,8 +18,12 @@ if fzf_opt ~= nil then
 end
 
 local function open_floating_win(path, line_nr)
-  local api = vim.api
   local buffer = vim.fn.bufadd(path)
+
+  if w ~= nil then
+    api.nvim_win_set_buf(w, buffer)
+  end
+
   local columns, lines = vim.o.columns, vim.o.lines
   local fzf_width = math.min(columns - 4, math.max(80, columns - 20))
   local width = math.floor(fzf_width * percent)
@@ -30,9 +38,10 @@ local function open_floating_win(path, line_nr)
     height = height,
     row = math.floor((lines - height)/2),
     col = math.floor((columns - fzf_width)/2 +  fzf_width * (1 - percent)),
+    zindex = 250,
   }
 
-  local w = api.nvim_open_win(buffer, true, opts)
+  w = api.nvim_open_win(buffer, false, opts)
   api.nvim_buf_set_option(buffer, 'bufhidden', 'wipe')
   api.nvim_win_set_cursor(w, {line_nr, 0})
 end
@@ -41,11 +50,20 @@ function M.get_preview_action(path)
   local shell = require('fzf.actions').action(function(selections, _, _)
     if selections ~= nil then
       local line_nr = u.get_leading_num(selections[1])
+      if path == p then
+        api.nvim_win_set_cursor(w, {line_nr, 0})
+      end
       open_floating_win(path, line_nr)
       return ""
     end
   end)
   return shell
 end
+
+M.vimgrep_preview = u.expect_key.." --preview="..require('fzf.actions').action(function(selections, _, _)
+  local parsed_content = {string.match(selections[1], "(.-):(%d+):.*")}
+  open_floating_win(parsed_content[1], tonumber(parsed_content[2]))
+  return ""
+end)
 
 return M
