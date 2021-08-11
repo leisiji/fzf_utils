@@ -40,15 +40,14 @@ local function create_win(path)
 
   init_opts()
 
-  local columns, lines = vim.o.columns, vim.o.lines
-  local fzf_width = math.min(columns - 4, math.max(80, columns - 20))
+  local fzf_width = api.nvim_win_get_width(0)
+  local fzf_pos = api.nvim_win_get_position(0)
   local width = math.floor(fzf_width * percent)
-  local height = math.min(lines - 4, math.max(20, lines - 10)) - 1
+  local height = api.nvim_win_get_height(0)
   local opts = {
     relative = 'editor', border = 'rounded',
     width = width, height = height, zindex = 200,
-    row = math.floor((lines - height)/2),
-    col = math.floor((columns - fzf_width)/2 +  fzf_width * (1 - percent)),
+    row = fzf_pos[1], col = fzf_pos[2] + fzf_width - width
   }
 
   w = api.nvim_open_win(b, false, opts)
