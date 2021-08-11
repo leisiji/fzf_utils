@@ -1,6 +1,7 @@
 local M = {}
 local fzf = require('fzf').fzf
 local fn = vim.fn
+local preview = require('fzf_utils.float_preview').get_preview_action
 
 -- example: {"_type": "tag", "pattern": "/^void thaw_secondary_cpus(void)$/", "line": 1412, "kind": "function"}
 local function get_ctags(file)
@@ -30,7 +31,7 @@ function M.get_cur_buf_func()
   local res = get_ctags(cur_file)
   coroutine.wrap(function ()
     local cmd = string.format('%s --preview=%s',
-                  utils.expect_key, utils.get_preview_action(cur_file))
+                  utils.expect_key, preview(cur_file))
     local choices = fzf(res, cmd)
     utils.handle_key(choices[1], cur_file,
                   utils.get_leading_num(choices[2]), col)

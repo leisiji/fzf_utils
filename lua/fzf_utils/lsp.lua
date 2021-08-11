@@ -15,11 +15,6 @@ local function lsp_to_vimgrep(r)
   return string.format('%s:%d:%d %s', path, loc.line + 1, loc.character + 1, line)
 end
 
-local function parse_vimgrep(grep)
-  local res = { string.match(grep, "(.-):(%d+):(%d+)") }
-  return { res[1], tonumber(res[2]), tonumber(res[3]) }
-end
-
 -- core function for finding def or ref
 local function lsp_handle(ret, action)
   local c
@@ -36,12 +31,12 @@ local function lsp_handle(ret, action)
   end
 
   if #res == 1 then
-    c = parse_vimgrep(res[1])
+    c = utils.parse_vimgrep(res[1])
     utils.cmdedit(action, c[1], c[2], c[3])
   else
     coroutine.wrap(function ()
-      local choices = require('fzf').fzf(res, utils.vimgrep_preview)
-      c = parse_vimgrep(choices[2])
+      local choices = require('fzf').fzf(res, require('fzf_utils.float_preview').vimgrep_preview)
+      c = utils.parse_vimgrep(choices[2])
       utils.handle_key(choices[1], c[1], c[2], c[3])
     end)()
   end

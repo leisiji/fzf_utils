@@ -22,10 +22,15 @@ end
 
 M.expect_key = '--expect=ctrl-v,ctrl-r,ctrl-t,ctrl-s'
 
-M.vimgrep_preview = M.expect_key.." --preview="..require('fzf.actions').action(function(selections, fzf_preview_lines, _)
-  local parsed_content = {string.match(selections[1], "(.-):(%d+):.*")}
-  return preview_lines(parsed_content[1], parsed_content[2], fzf_preview_lines)
-end)
+function M.parse_vimgrep(content)
+  local res = { string.match(content, "(.-):(%d+):(%d+)") }
+  return { res[1], tonumber(res[2]), tonumber(res[3]) }
+end
+
+--M.vimgrep_preview = M.expect_key.." --preview="..require('fzf.actions').action(function(selections, fzf_preview_lines, _)
+--  local parsed_content = M.parse_vimgrep(selections[1])
+--  return preview_lines(parsed_content[1], parsed_content[2], fzf_preview_lines)
+--end)
 
 -- get preview action that has result starting with line number
 function M.get_preview_action(path)
