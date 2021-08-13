@@ -23,7 +23,7 @@ end
 M.expect_key = '--expect=ctrl-v,ctrl-r,ctrl-t,ctrl-s'
 
 function M.parse_vimgrep(content)
-  local res = { string.match(content, "(.-):(%d+):(%d+)") }
+  local res = { string.match(content, "(.-):(%d+):(%d*)") }
   return { res[1], tonumber(res[2]), tonumber(res[3]) }
 end
 

@@ -25,11 +25,11 @@ local function get_ctags(file)
 end
 
 function M.get_cur_buf_func()
-  local utils = require('fzf_utils.utils')
-  local cur_file = fn.expand("%:p")
-  local col = fn.getcurpos()[3]
-  local res = get_ctags(cur_file)
   coroutine.wrap(function ()
+    local utils = require('fzf_utils.utils')
+    local cur_file = fn.expand("%:p")
+    local col = fn.getcurpos()[3]
+    local res = get_ctags(cur_file)
     local cmd = string.format('%s --preview=%s',
                   utils.expect_key, preview(cur_file))
     local choices = fzf(res, cmd)
