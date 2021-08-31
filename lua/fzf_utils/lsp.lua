@@ -6,6 +6,9 @@ local request = require('plenary.async_lib.lsp').buf_request_all
 
 -- transform function
 local function lsp_to_vimgrep(r)
+  if r.location ~= nil then
+    r = r.location
+  end
   local range = r.range or r.targetRange
   local uri = r.uri or r.targetUri
   local loc = range.start
@@ -42,9 +45,10 @@ local function lsp_handle(ret, action)
   end
 end
 
-local function lsp_fzf(method, action)
+local function lsp_fzf(method, action, param)
   a.async_void(function ()
-    local r = a.await(request(0, method, lsp.util.make_position_params()))
+    local p = param or lsp.util.make_position_params()
+    local r = a.await(request(0, method, p))
     if r == nil then
       print(method + 'not found')
     else
@@ -59,6 +63,10 @@ end
 
 function M.references(action)
   lsp_fzf('textDocument/references', action or 'edit')
+end
+
+function M.workspace_symbol(action)
+  lsp_fzf('workspace/symbol', action or 'edit', { query = '' })
 end
 
 return M

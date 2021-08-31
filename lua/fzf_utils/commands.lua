@@ -57,6 +57,8 @@ local function lsp_command(arg2, arg3, arg4)
     lsp.definition(arg3)
   elseif arg2 == 'ref' then
     lsp.references(arg3)
+  elseif arg2 == 'workspace_symbol' then
+    lsp.workspace_symbol(arg3)
   end
 end
 

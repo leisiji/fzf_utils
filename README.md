@@ -51,6 +51,7 @@ FzfCommand --lsp jump_def edit
 FzfCommand --lsp jump_def tab drop
 FzfCommand --lsp jump_def vsplit
 FzfCommand --lsp ref tab drop
+FzfCommand --lsp workspace_symbol
 
 " mru
 FzfCommand --mru
