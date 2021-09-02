@@ -86,6 +86,7 @@ local function create_win(path)
   for k, v in pairs(keymap) do
     api.nvim_buf_set_keymap(0, 't', k, v, { noremap = true })
   end
+  api.nvim_win_set_option(w, 'signcolumn', 'no')
 
   return w
 end
