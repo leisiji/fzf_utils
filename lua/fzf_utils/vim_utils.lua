@@ -27,7 +27,7 @@ local function get_help_tags(cb)
   end)()
 end
 
-function M.get_filetypes()
+function M.filetypes()
   coroutine.wrap(function ()
     local fn = vim.fn
     local syntax_files = fn.globpath(vim.o.rtp, 'syntax/*.vim')
@@ -41,7 +41,7 @@ function M.get_filetypes()
   end)()
 end
 
-function M.vim_help()
+function M.help()
   coroutine.wrap(function ()
     local result = fzf(get_help_tags, '--nth 1 --expect=ctrl-t')
     if not result then
@@ -61,7 +61,7 @@ function M.vim_help()
   end)()
 end
 
-function M.vim_cmd_history()
+function M.cmdHists()
   local fn = vim.fn
   local search = "cmd"
   local nr = fn.histnr(search)

@@ -35,13 +35,9 @@ local function ctags_command()
 end
 
 local function vim_command(arg2)
-  local vim_utils = get_fzf('vim_utils')
-  if arg2 == 'help' then
-    vim_utils.vim_help()
-  elseif arg2 == "cmdHists" then
-    vim_utils.vim_cmd_history()
-  elseif arg2 == "filetypes" then
-    vim_utils.get_filetypes()
+  local u = get_fzf('vim_utils')
+  if arg2 ~= nil and u[arg2] ~= nil then
+    u[arg2]()
   end
 end
 
@@ -53,12 +49,8 @@ local function lsp_command(arg2, arg3, arg4)
     arg3 = string.format('%s %s', arg3, arg4)
   end
 
-  if arg2 == 'jump_def' then
-    lsp.definition(arg3)
-  elseif arg2 == 'ref' then
-    lsp.references(arg3)
-  elseif arg2 == 'workspace_symbol' then
-    lsp.workspace_symbol(arg3)
+  if arg2 ~= nil and lsp[arg2] ~= nil then
+    lsp[arg2](arg3)
   end
 end
 

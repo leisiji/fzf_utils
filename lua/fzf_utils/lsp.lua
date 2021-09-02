@@ -57,11 +57,11 @@ local function lsp_fzf(method, action, param)
   end)()
 end
 
-function M.definition(action)
+function M.jump_def(action)
   lsp_fzf('textDocument/definition', action or 'edit')
 end
 
-function M.references(action)
+function M.ref(action)
   lsp_fzf('textDocument/references', action or 'edit')
 end
 
