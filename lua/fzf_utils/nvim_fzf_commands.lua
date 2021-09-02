@@ -91,8 +91,8 @@ end
 
 function M.commit()
   coroutine.wrap(function ()
-    local preview = "--preview='git show --color {1}'"
-    fzf("git log --oneline --color", preview)
+    local p = "--preview='git show --color {1}'"
+    fzf("git log --oneline --color", p)
   end)()
 end
 

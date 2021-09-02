@@ -8,6 +8,19 @@ local api = vim.api
 local percent = 0.5
 local initialized = false
 
+local function w_exe(win, cmd)
+  vim.fn.win_execute(win, 'norm! ' .. cmd)
+end
+
+local function float_act(str)
+  return string.format([[<cmd>lua require('fzf_utils.float_preview').%s<cr>]], str)
+end
+local keymap = {
+  ['<C-p>'] = float_act('close_preview_win()'),
+  ['<M-j>'] = float_act('scroll(1)'),
+  ['<M-k>'] = float_act('scroll(-1)'),
+}
+
 -- parse preview percentage from fzf env
 local function init_opts()
   if initialized then
@@ -23,6 +36,16 @@ local function init_opts()
   end
 
   initialized = true
+end
+
+function M.scroll(line)
+  local cmd
+  if line > 0 then
+    cmd = [[]]
+  else
+    cmd = [[]]
+  end
+  w_exe(w, math.abs(line)..cmd)
 end
 
 local function create_win(path)
@@ -59,11 +82,18 @@ local function create_win(path)
       au BufHidden <buffer> lua require('fzf_utils.float_preview').close_preview_win()
     augroup end
   ]])
+
+  for k, v in pairs(keymap) do
+    api.nvim_buf_set_keymap(0, 't', k, v, { noremap = true })
+  end
+
   return w
 end
 
 local function open_floating_win(path, l)
-  api.nvim_win_set_cursor(create_win(path), {l, 0})
+  local win = create_win(path)
+  api.nvim_win_set_cursor(win, {l, 0})
+  w_exe(win, 'zz')
 end
 
 function M.get_preview_action(path)
@@ -84,7 +114,7 @@ function M.close_preview_win()
   end
 end
 
-M.vimgrep_preview = u.expect_key.." --preview="..require('fzf.actions').action(function(s, _, _)
+M.vimgrep_preview = u.expect_key..'--preview='..require('fzf.actions').action(function(s, _, _)
   local c = u.parse_vimgrep(s[1])
   open_floating_win(c[1], c[2])
   return ""
