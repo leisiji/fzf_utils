@@ -115,10 +115,12 @@ function M.close_preview_win()
   end
 end
 
-M.vimgrep_preview = u.expect_key..' --preview='..require('fzf.actions').action(function(s, _, _)
+local act = require('fzf.actions').action(function(s, _, _)
   local c = u.parse_vimgrep(s[1])
   open_floating_win(c[1], c[2])
-  return ""
+  return ''
 end)
+
+M.vimgrep_preview = string.format([[%s --preview=%s ]], u.expect_key, act)
 
 return M
