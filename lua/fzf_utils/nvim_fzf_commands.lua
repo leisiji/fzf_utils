@@ -3,7 +3,6 @@ local utils = require('fzf_utils.utils')
 local fn = vim.fn
 local api = vim.api
 local M = {}
-local preview = require('fzf_utils.float_preview').get_preview_action
 
 local function get_buf_lines()
     local lines = api.nvim_buf_get_lines(fn.bufnr(), 0, fn.line('$'), 1)
@@ -20,10 +19,11 @@ local function get_buf_lines()
 end
 
 function M.grep_lines()
+  local preview = require('fzf_utils.float_preview').get_preview_action
   coroutine.wrap(function()
     local path = fn.expand("%:p")
     local col = fn.getcurpos()[3]
-    local p = utils.expect_key..' --nth=2.. --preview=' .. preview(path)
+    local p = ' --nth=2.. ' .. preview(path)
     local cmd
     if fn.filereadable(path) == 1 then
       cmd = 'cat -n ' .. path

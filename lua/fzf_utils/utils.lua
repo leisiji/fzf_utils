@@ -36,6 +36,7 @@ M.expect_key = '--expect=ctrl-v,ctrl-r,ctrl-t,ctrl-s'
 --  return shell
 --end
 
+-- return: { path, line, column }
 function M.parse_vimgrep(content)
   local res = { string.match(content, "(.-):(%d+):(%d*)") }
   return { res[1], tonumber(res[2]), tonumber(res[3]) }
