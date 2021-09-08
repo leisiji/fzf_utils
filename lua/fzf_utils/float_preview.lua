@@ -112,13 +112,17 @@ function M.get_preview_action(path)
   return u.expect_key .. fzf_preview(shell)
 end
 
-function M.close_preview_win()
+local function close_win()
   local w = preview_win.win
   if w ~= nil and api.nvim_win_is_valid(w) then
     api.nvim_win_close(w, true)
-    preview_win.win = nil
-    preview_win.path = nil
   end
+  preview_win.win = nil
+end
+
+function M.close_preview_win()
+  close_win()
+  preview_win.path = nil
 end
 
 function M.scroll(line)
@@ -134,7 +138,7 @@ end
 function M.toggle_preview()
   local toggle = preview_win.toggle
   if not toggle then
-    M.close_preview_win()
+    close_win()
   else
     open_floating_win_(preview_win.path, preview_win.line)
   end
