@@ -123,6 +123,7 @@ end
 function M.close_preview_win()
   close_win()
   preview_win.path = nil
+  preview_win.toggle = false
 end
 
 function M.scroll(line)
