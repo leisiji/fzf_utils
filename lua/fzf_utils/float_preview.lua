@@ -54,6 +54,7 @@ local function create_win(path)
   local w = api.nvim_open_win(b, false, opts)
 
   api.nvim_win_set_option(w, 'signcolumn', 'no')
+  api.nvim_win_set_option(w, 'winhl', 'NormalFloat:Normal')
 
   -- buffer related
   for k, v in pairs(keymap) do
