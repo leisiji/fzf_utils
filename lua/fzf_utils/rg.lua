@@ -5,7 +5,7 @@ local utils = require('fzf_utils.utils')
 local preview = require('fzf_utils.float_preview').vimgrep_preview
 
 local function get_rg_cmd(pattern, dir)
-  local rgcmd = "rg -w --vimgrep --no-heading --color ansi " .. fn.shellescape(pattern)
+  local rgcmd = "rg -w --with-filename --line-number --column --color ansi " .. fn.shellescape(pattern)
 
   if type(dir) == "string" then
     rgcmd = rgcmd .. ' ' .. dir
