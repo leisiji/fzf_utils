@@ -54,9 +54,18 @@ local function lsp_handle(ret, action)
   end
 end
 
-local function lsp_async(method, action)
+local function lsp_async(method, action, extra_param)
   a.async_void(function ()
-    local r = a.await(request(0, method, lsp.util.make_position_params()))
+    local params = lsp.util.make_position_params()
+
+    if extra_param ~= nil then
+      for k, v in pairs(extra_param) do
+        params[k] = v
+      end
+    end
+
+    local r = a.await(request(0, method, params))
+    print(vim.inspect(r))
     if r == nil then
       print(method + 'not found')
     else
@@ -70,7 +79,11 @@ function M.jump_def(action)
 end
 
 function M.ref(action)
-  lsp_async('textDocument/references', action or 'edit')
+  local extra = nil
+  if vim.bo.filetype == 'rust' then
+    extra = { context = { includeDeclaration = true } }
+  end
+  lsp_async('textDocument/references', action or 'edit', extra)
 end
 
 function M.workspace_symbol()
