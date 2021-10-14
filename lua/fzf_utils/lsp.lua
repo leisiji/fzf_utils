@@ -65,7 +65,6 @@ local function lsp_async(method, action, extra_param)
     end
 
     local r = a.await(request(0, method, params))
-    print(vim.inspect(r))
     if r == nil then
       print(method + 'not found')
     else
