@@ -99,7 +99,7 @@ function M.workspace_symbol()
     end), 1000)
   end)
 
-  local act = preview..string.format([[--bind "change:reload:%s {q}"]], ws_act)
+  local act = preview..string.format([[ --bind "change:reload:%s {q}"]], ws_act)
   lsp_to_fzf({}, act)
 end
 
