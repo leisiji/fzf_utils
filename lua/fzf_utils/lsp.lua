@@ -6,10 +6,6 @@ local request = require('plenary.async_lib.lsp').buf_request_all
 local fzf = require('fzf').fzf
 local preview = require('fzf_utils.float_preview').vimgrep_preview
 
-local ref_extra = {
-  rust = { context = { includeDeclaration = true } }
-}
-
 -- transform function
 local function lsp_item_to_vimgrep(r)
   if r.location ~= nil then
@@ -58,14 +54,10 @@ local function lsp_handle(ret, action)
   end
 end
 
-local function lsp_async(method, action, extra_param)
+local function lsp_async(method, action)
   a.async_void(function ()
     local params = lsp.util.make_position_params()
-
-    if extra_param ~= nil then
-      params = vim.tbl_extend("force", params, extra_param)
-    end
-
+    params.context = { includeDeclaration = true; }
     local r = a.await(request(0, method, params))
     if r == nil then
       print(method + 'not found')
@@ -80,8 +72,7 @@ function M.jump_def(action)
 end
 
 function M.ref(action)
-  local extra = ref_extra[vim.bo.filetype]
-  lsp_async('textDocument/references', action or 'edit', extra)
+  lsp_async('textDocument/references', action or 'edit')
 end
 
 function M.workspace_symbol()
