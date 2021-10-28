@@ -34,6 +34,11 @@ local function init_opts()
   end
 end
 
+local function set_float_win_options(w)
+  api.nvim_win_set_option(w, 'signcolumn', 'no')
+  api.nvim_win_set_option(w, 'winhl', 'NormalFloat:Normal')
+end
+
 local function create_buf(path)
   local b = vim.fn.bufadd(path)
   api.nvim_buf_set_option(b, 'bufhidden', 'wipe')
@@ -53,8 +58,7 @@ local function create_win(path)
   local b = create_buf(path)
   local w = api.nvim_open_win(b, false, opts)
 
-  api.nvim_win_set_option(w, 'signcolumn', 'no')
-  api.nvim_win_set_option(w, 'winhl', 'NormalFloat:Normal')
+  set_float_win_options(w)
 
   -- buffer related
   for k, v in pairs(keymap) do
@@ -78,6 +82,7 @@ local function open_floating_win_(path, l)
   elseif path ~= preview_win.path then
     local b = create_buf(path)
     api.nvim_win_set_buf(w, b)
+    set_float_win_options(w)
   end
   api.nvim_win_set_cursor(w, {l, 0})
   w_exe(w, 'zz')
