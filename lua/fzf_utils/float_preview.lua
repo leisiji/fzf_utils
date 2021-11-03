@@ -39,6 +39,11 @@ local function set_float_win_options(w)
   api.nvim_win_set_option(w, 'winhl', 'NormalFloat:Normal')
 end
 
+local function highlight_word(word, w)
+  return vim.fn.matchadd('LspReferenceText',
+      string.format([[\V\<%s\>]], word), 11, -1, { window = w })
+end
+
 local function create_buf(path)
   local b = vim.fn.bufadd(path)
   api.nvim_buf_set_option(b, 'bufhidden', 'wipe')
@@ -71,6 +76,11 @@ local function create_win(path)
     augroup end
   ]])
 
+  local word = preview_win.word
+  if word ~= nil then
+    preview_win.match_id = highlight_word(word, w)
+  end
+
   return w
 end
 
@@ -88,22 +98,12 @@ local function open_floating_win_(path, l)
   w_exe(w, 'zz')
 end
 
-local function highlight_word(word)
-  preview_win.match_id = vim.fn.matchadd('LspReferenceText',
-      string.format([[\V\<%s\>]], word), 11, -1, { window = preview_win.win })
-end
-
 local function open_floating_win(path, l)
   if not preview_win.toggle then
     open_floating_win_(path, l)
   end
   preview_win.line = l
   preview_win.path = path
-
-  local word = preview_win.word
-  if word ~= nil then
-    highlight_word(word)
-  end
 end
 
 local function fzf_preview(cmd)
@@ -116,19 +116,6 @@ local act = require('fzf.actions').action(function(s, _, _)
   return ''
 end)
 
--------------- Module Export Function -----------
-function M.get_preview_action(path, word)
-  local action = require('fzf.actions').action
-  local shell = action(function(s, _, _)
-    if s ~= nil then
-      preview_win.word = word
-      open_floating_win(path, u.get_leading_num(s[1]))
-      return ""
-    end
-  end)
-  return u.expect_key .. fzf_preview(shell)
-end
-
 local function close_win()
   local w = preview_win.win
   if w ~= nil and api.nvim_win_is_valid(w) then
@@ -137,6 +124,7 @@ local function close_win()
   preview_win.win = nil
 end
 
+-------------- Inner Function -----------
 function M.close_preview_win()
   close_win()
   preview_win.path = nil
@@ -163,6 +151,19 @@ function M.toggle_preview()
     open_floating_win_(preview_win.path, preview_win.line)
   end
   preview_win.toggle = not toggle
+end
+
+-------------- Module Export Function -----------
+function M.get_preview_action(path, word)
+  local action = require('fzf.actions').action
+  local shell = action(function(s, _, _)
+    if s ~= nil then
+      preview_win.word = word
+      open_floating_win(path, u.get_leading_num(s[1]))
+      return ""
+    end
+  end)
+  return u.expect_key .. fzf_preview(shell)
 end
 
 function M.vimgrep_preview(word)
