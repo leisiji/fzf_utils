@@ -42,14 +42,14 @@ end
 --------------------- command function ----------------------
 function M.search_path(pattern, path)
   coroutine.wrap(function ()
-    local choices = fzf(get_rg_cmd(pattern, path), preview)
+    local choices = fzf(get_rg_cmd(pattern, path), preview(pattern))
     deal_with_rg_results(choices[1], choices[2])
   end)()
 end
 
 function M.search_all_buffers(pattern)
   coroutine.wrap(function ()
-    local choices = fzf(get_all_buffers(pattern), preview)
+    local choices = fzf(get_all_buffers(pattern), preview(pattern))
     deal_with_rg_results(choices[1], choices[2])
   end)()
 end

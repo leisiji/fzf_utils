@@ -6,7 +6,7 @@ local api = vim.api
 local percent = 0.5
 local preview_win = {
   win = nil, path = nil, line = nil,
-  toggle = false
+  toggle = false, word = nil, match_id = nil
 }
 
 local function float_act(str)
@@ -88,12 +88,22 @@ local function open_floating_win_(path, l)
   w_exe(w, 'zz')
 end
 
+local function highlight_word(word)
+  preview_win.match_id = vim.fn.matchadd('LspReferenceText',
+      string.format([[\V\<%s\>]], word), 11, -1, { window = preview_win.win })
+end
+
 local function open_floating_win(path, l)
   if not preview_win.toggle then
     open_floating_win_(path, l)
   end
   preview_win.line = l
   preview_win.path = path
+
+  local word = preview_win.word
+  if word ~= nil then
+    highlight_word(word)
+  end
 end
 
 local function fzf_preview(cmd)
@@ -107,10 +117,11 @@ local act = require('fzf.actions').action(function(s, _, _)
 end)
 
 -------------- Module Export Function -----------
-function M.get_preview_action(path)
+function M.get_preview_action(path, word)
   local action = require('fzf.actions').action
   local shell = action(function(s, _, _)
     if s ~= nil then
+      preview_win.word = word
       open_floating_win(path, u.get_leading_num(s[1]))
       return ""
     end
@@ -130,6 +141,8 @@ function M.close_preview_win()
   close_win()
   preview_win.path = nil
   preview_win.toggle = false
+  preview_win.match_id = nil
+  preview_win.word = nil
 end
 
 function M.scroll(line)
@@ -152,7 +165,10 @@ function M.toggle_preview()
   preview_win.toggle = not toggle
 end
 
-M.vimgrep_preview = fzf_preview(act)..u.expect_key
+function M.vimgrep_preview(word)
+  preview_win.word = word
+  return fzf_preview(act)..u.expect_key
+end
 
 init_opts()
 

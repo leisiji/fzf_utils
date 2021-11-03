@@ -50,7 +50,7 @@ local function lsp_handle(ret, action)
     local c = utils.parse_vimgrep(res[1])
     utils.cmdedit(action, c[1], c[2], c[3])
   else
-    lsp_to_fzf(res, preview)
+    lsp_to_fzf(res, preview(fn.expand('<cword>')))
   end
 end
 
@@ -99,7 +99,7 @@ function M.workspace_symbol()
     end), 1000)
   end)
 
-  local act = preview..string.format([[ --bind "change:reload:%s {q}"]], ws_act)
+  local act = preview()..string.format([[ --bind "change:reload:%s {q}"]], ws_act)
   lsp_to_fzf({}, act)
 end
 

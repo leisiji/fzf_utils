@@ -9,7 +9,7 @@ vim.env.GTAGSDBPATH = vim.env.GTAGSROOT
 local function execute_global(options, pattern)
   coroutine.wrap(function ()
     local choices = fzf("global --result=grep " .. options .. " " .. pattern,
-                        require('fzf_utils.float_preview').vimgrep_preview)
+                        require('fzf_utils.float_preview').vimgrep_preview(pattern))
     if choices == nil then
       return
     end
