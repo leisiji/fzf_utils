@@ -11,13 +11,13 @@ local function lsp_item_to_vimgrep(r)
   if r.location ~= nil then
     r = r.location
   end
-  local range = r.range or r.targetRange
+  local range = r.range or r.targetSelectionRange or r.targetRange
   local uri = r.uri or r.targetUri
   local loc = range.start
   local path = fn.fnamemodify(vim.uri_to_fname(uri), ':.')
   local line = vim.lsp.util.get_line(uri, loc.line)
 
-  return string.format('%s:%d:%d %s', path, loc.line + 1, loc.character + 1, line)
+  return string.format('%s:%d:%d %s', path, loc.line + 1, loc.character, line)
 end
 
 local function lsp_to_vimgrep(ret)
@@ -60,7 +60,7 @@ local function lsp_async(method, action)
     params.context = { includeDeclaration = true; }
     local r = a.await(request(0, method, params))
     if r == nil then
-      print(method + 'not found')
+      vim.notify(method + 'not found')
     else
       lsp_handle(r, action)
     end
