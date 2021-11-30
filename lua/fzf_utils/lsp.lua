@@ -6,32 +6,19 @@ local request = require('plenary.async_lib.lsp').buf_request_all
 local fzf = require('fzf').fzf
 local preview = require('fzf_utils.float_preview').vimgrep_preview
 
--- transform function
-local function lsp_item_to_vimgrep(r)
-  if r.location ~= nil then
-    r = r.location
-  end
-  local range = r.range or r.targetSelectionRange or r.targetRange
-  local uri = r.uri or r.targetUri
-  local loc = range.start
-  local path = fn.fnamemodify(vim.uri_to_fname(uri), ':.')
-  local line = vim.lsp.util.get_line(uri, loc.line)
-
-  return string.format('%s:%d:%d %s', path, loc.line + 1, loc.character, line)
-end
-
-local function lsp_to_vimgrep(ret)
-  local res = {}
-  for _, v in pairs(ret) do
-    if v.result ~= nil then
-      for _, item in pairs(v.result) do
-        res[#res+1] = lsp_item_to_vimgrep(item)
+local function lsp_to_vimgrep(results)
+  local greps = {}
+  for _, v in pairs(results) do
+    if v.result then
+      local items = lsp.util.locations_to_items(v.result)
+      for _, item in pairs(items) do
+        local s = string.format('%s:%d:%d %s',
+            item.filename, item.lnum, item.col, item.text)
+        table.insert(greps, s)
       end
-    else
-      res[#res+1] = lsp_item_to_vimgrep(v)
     end
   end
-  return res
+  return greps
 end
 
 local function lsp_to_fzf(res, cli_args)
