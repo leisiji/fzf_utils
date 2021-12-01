@@ -41,6 +41,11 @@ local function add_file(f)
       if i < #res then
         while string.sub(res, i, i) ~= '\n' do
           i = i - 1
+          if i == 0 then
+            vim.notify(string.format('Corrupted mru files: %s', mru))
+            a.await(uv.fs_close(fd))
+            return
+          end
         end
         res = string.sub(res, 1, i) .. data
       else
