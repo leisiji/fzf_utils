@@ -62,6 +62,21 @@ function M.ref(action)
   lsp_async('textDocument/references', action or 'edit')
 end
 
+function symbols_to_vimgrep(results)
+  local greps = ""
+  for _, v in pairs(results) do
+    if v.result then
+      local symbols = lsp.util.symbols_to_items(v.result)
+      print(vim.inspect(symbols))
+      for _, symbol in pairs(symbols) do
+        greps = greps .. string.format('%s:%d:%d %s\n', fn.fnamemodify(symbol.filename, ':.'), 
+                  symbol.lnum, symbol.col, symbol.text)
+      end
+    end
+  end
+  return greps
+end
+
 function M.workspace_symbol()
   local timer
   local bufnr = fn.bufnr()
@@ -80,7 +95,7 @@ function M.workspace_symbol()
     timer = vim.defer_fn(a.async_void(function ()
       local r = a.await(request(bufnr, 'workspace/symbol', { query = args[2] }))
       if r ~= nil then
-        a.await(a.uv.write(pipe, table.concat(lsp_to_vimgrep(r), '\n')))
+        a.await(a.uv.write(pipe, symbols_to_vimgrep(r)))
         a.await(a.uv.close(pipe))
       end
     end), 1000)
