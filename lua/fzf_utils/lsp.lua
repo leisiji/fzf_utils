@@ -5,16 +5,26 @@ local a = require('plenary.async_lib')
 local request = require('plenary.async_lib.lsp').buf_request_all
 local fzf = require('fzf').fzf
 local preview = require('fzf_utils.float_preview').vimgrep_preview
+local color_vimgrep = "\27[0;35m%s:%d:%d\27[0m %s"
+
+local function gen_vimgrep(pattern, item)
+  local s = string.format(pattern, fn.fnamemodify(item.filename, ':.'),
+                          item.lnum, item.col, item.text)
+  return s
+end
 
 local function lsp_to_vimgrep(results)
   local greps = {}
   for _, v in pairs(results) do
     if v.result then
       local items = lsp.util.locations_to_items(v.result)
-      for _, item in pairs(items) do
-        local s = string.format("\27[0;35m%s:%d:%d\27[0m %s",
-            fn.fnamemodify(item.filename, ':.'), item.lnum, item.col, item.text)
-        table.insert(greps, s)
+      if #items == 1 then
+        return { gen_vimgrep("%s:%d:%d %s", items[1]) }
+      else
+        for _, item in pairs(items) do
+          local s = gen_vimgrep(color_vimgrep, item)
+          table.insert(greps, s)
+        end
       end
     end
   end
@@ -62,15 +72,14 @@ function M.ref(action)
   lsp_async('textDocument/references', action or 'edit')
 end
 
-function symbols_to_vimgrep(results)
+local function symbols_to_vimgrep(results)
   local greps = ""
   for _, v in pairs(results) do
     if v.result then
       local symbols = lsp.util.symbols_to_items(v.result)
       print(vim.inspect(symbols))
       for _, symbol in pairs(symbols) do
-        greps = greps .. string.format('%s:%d:%d %s\n', fn.fnamemodify(symbol.filename, ':.'), 
-                  symbol.lnum, symbol.col, symbol.text)
+        greps = greps .. gen_vimgrep(color_vimgrep, symbol)
       end
     end
   end
