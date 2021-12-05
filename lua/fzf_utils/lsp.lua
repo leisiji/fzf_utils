@@ -12,7 +12,7 @@ local function lsp_to_vimgrep(results)
     if v.result then
       local items = lsp.util.locations_to_items(v.result)
       for _, item in pairs(items) do
-        local s = string.format('%s:%d:%d %s',
+        local s = string.format("\27[0;35m%s:%d:%d\27[0m %s",
             fn.fnamemodify(item.filename, ':.'), item.lnum, item.col, item.text)
         table.insert(greps, s)
       end
