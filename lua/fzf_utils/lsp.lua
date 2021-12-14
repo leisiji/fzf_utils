@@ -77,7 +77,6 @@ local function symbols_to_vimgrep(results)
   for _, v in pairs(results) do
     if v.result then
       local symbols = lsp.util.symbols_to_items(v.result)
-      print(vim.inspect(symbols))
       for _, symbol in pairs(symbols) do
         greps = greps .. gen_vimgrep(color_vimgrep, symbol) .. '\n'
       end
