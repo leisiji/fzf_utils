@@ -17,7 +17,7 @@ local function lsp_to_vimgrep(results)
   local greps = {}
   for _, v in pairs(results) do
     if v.result then
-      local items = lsp.util.locations_to_items(v.result)
+      local items = lsp.util.locations_to_items(v.result, 'utf-8')
       if #items == 1 then
         return { gen_vimgrep("%s:%d:%d %s", items[1]) }
       else
