@@ -7,11 +7,13 @@ local u = require('fzf_utils.utils')
 local uv = a.uv
 local mru = string.format('%s/%s', fn.stdpath('cache'), 'fzf_mru')
 local fzf_mru_size = 64 * 1024
+local lock = false
 
 -- fzf_mru_mtime, fzf_mru_cache is for cache.
 -- When 'fzf_mru' is modified in another vim, it should update the cache
 local function add_file(f)
   a.async_void(function ()
+    lock = true
     local data
     local res = f .. '\n'
     local i, p = 1, 1
@@ -19,7 +21,7 @@ local function add_file(f)
     local _, stat = a.await(uv.fs_fstat(fd))
 
     if vim.g.fzf_mru_mtime ~= stat.mtime.sec then
-      _, data = a.await(a.uv.fs_read(fd, stat.size, 0))
+      _, data = a.await(uv.fs_read(fd, stat.size, 0))
     else
       data = vim.g.fzf_mru_cache
     end
@@ -44,6 +46,7 @@ local function add_file(f)
           if i == 0 then
             vim.notify(string.format('Corrupted mru files: %s', mru))
             a.await(uv.fs_close(fd))
+            lock = false
             return
           end
         end
@@ -59,10 +62,15 @@ local function add_file(f)
     vim.g.fzf_mru_cache = res
     vim.g.fzf_mru_mtime = stat.mtime.sec
     a.await(uv.fs_close(fd))
+    lock = false
   end)()
 end
 
 function M.refresh_mru()
+  if lock then
+    return
+  end
+
   local f = fn.expand('%:p')
   if fn.filereadable(f) == 0 then
     return
