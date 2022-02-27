@@ -24,7 +24,7 @@ end
 local key_actions = {
   ['ctrl-v']='vsplit',
   ['ctrl-s']='split',
-  ['ctrl-t']='tab drop',
+  ['ctrl-t']='tabe',
 }
 
 function M.handle_key(key, path, row, col)

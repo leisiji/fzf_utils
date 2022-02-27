@@ -5,17 +5,17 @@ local api = vim.api
 local M = {}
 
 local function get_buf_lines()
-    local lines = api.nvim_buf_get_lines(fn.bufnr(), 0, fn.line('$'), 1)
-    local n = 1
-    local bufs = {}
+  local lines = api.nvim_buf_get_lines(fn.bufnr(), 0, fn.line('$'), 1)
+  local n = 1
+  local bufs = {}
 
-    for _, line in pairs(lines) do
-      line = string.format('%d %s', n, line)
-      bufs[n] = line
-      n = n + 1
-    end
+  for _, line in pairs(lines) do
+    line = string.format('%d %s', n, line)
+    bufs[n] = line
+    n = n + 1
+  end
 
-    return bufs
+  return bufs
 end
 
 function M.grep_lines()
