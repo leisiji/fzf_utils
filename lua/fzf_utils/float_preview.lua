@@ -147,14 +147,14 @@ function M.toggle_preview()
   preview_win.toggle = not toggle
 end
 
-function M.open_float_win(path, row, col, width, height)
+function M.open_float_win(path, row, col, width, height, focus)
   local opts = {
     relative = 'editor', border = 'rounded',
     width = width, height = height, zindex = 200,
     row = row, col = col,
   }
   local b = create_buf(path)
-  local w = api.nvim_open_win(b, false, opts)
+  local w = api.nvim_open_win(b, focus or false, opts)
 
   set_float_win_options(w)
   return w

@@ -6,7 +6,7 @@ local function open_float_win(path, row, col)
   local w =  math.floor(win_width*0.75)
   local h = vim.api.nvim_win_get_height(0)
   local c = math.floor(win_width*0.125)
-  local win = f.open_float_win(path, 0, c, w, h)
+  local win = f.open_float_win(path, 0, c, w, h, true)
   vim.api.nvim_win_set_cursor(win, {row, col})
 end
 
