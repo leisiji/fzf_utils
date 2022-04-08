@@ -55,15 +55,9 @@ local function create_win(path)
   local fzf_pos = api.nvim_win_get_position(0)
   local fzf_height = api.nvim_win_get_height(0)
   local width = math.floor(fzf_width * percent)
-  local opts = {
-    relative = 'editor', border = 'rounded',
-    width = width, height = fzf_height, zindex = 200,
-    row = fzf_pos[1], col = fzf_pos[2] + fzf_width - width
-  }
-  local b = create_buf(path)
-  local w = api.nvim_open_win(b, false, opts)
+  local row = fzf_pos[2] + fzf_width - width
 
-  set_float_win_options(w)
+  local w = M.open_float_win(path, fzf_pos[1], row, width, fzf_height)
 
   -- buffer related
   for k, v in pairs(keymap) do
@@ -124,7 +118,7 @@ local function close_win()
   preview_win.win = nil
 end
 
--------------- Inner Function -----------
+-------------- Module Export Function -----------
 function M.close_preview_win()
   close_win()
   preview_win.path = nil
@@ -153,7 +147,19 @@ function M.toggle_preview()
   preview_win.toggle = not toggle
 end
 
--------------- Module Export Function -----------
+function M.open_float_win(path, row, col, width, height)
+  local opts = {
+    relative = 'editor', border = 'rounded',
+    width = width, height = height, zindex = 200,
+    row = row, col = col,
+  }
+  local b = create_buf(path)
+  local w = api.nvim_open_win(b, false, opts)
+
+  set_float_win_options(w)
+  return w
+end
+
 function M.get_preview_action(path, word)
   local action = require('fzf.actions').action
   local shell = action(function(s, _, _)
