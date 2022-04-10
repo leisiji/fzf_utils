@@ -86,7 +86,7 @@ end
 
 function M.fzf_mru()
   coroutine.wrap(function ()
-    local choices = require('fzf').fzf('cat ' .. mru, u.expect_key)
+    local choices = require('fzf').fzf('cat ' .. mru, u.expect_key())
     if choices[1] == "ctrl-r" then
       os.remove(mru)
       vim.schedule(M.fzf_mru)

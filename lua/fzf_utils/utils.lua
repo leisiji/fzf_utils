@@ -1,4 +1,5 @@
 local M = {}
+local expect_key = nil
 
 local function open_float_win(path, row, col)
   local f = require('fzf_utils.float_preview')
@@ -6,15 +7,30 @@ local function open_float_win(path, row, col)
   local w =  math.floor(win_width*0.75)
   local h = vim.api.nvim_win_get_height(0)
   local c = math.floor(win_width*0.125)
-  local win = f.open_float_win(path, 0, c, w, h, true)
+  local win = f.open_float_win(path, 0, c, w, h, true, 40)
   vim.api.nvim_win_set_cursor(win, {row, col})
 end
+
+local key_actions = {
+  ['ctrl-v']='vsplit',
+  ['ctrl-s']='split',
+  ['ctrl-t']='tabe',
+  ['ctrl-f']=open_float_win,
+}
 
 function M.get_leading_num(str)
   return tonumber(string.match(str, "%d+"))
 end
 
-M.expect_key = '--expect=ctrl-v,ctrl-r,ctrl-t,ctrl-s,ctrl-f'
+function M.expect_key()
+  if expect_key == nil then
+    expect_key = "--expect="
+    for key, _ in pairs(key_actions) do
+      expect_key = expect_key .. key .. ','
+    end
+  end
+  return expect_key
+end
 
 -- return: { path, line, column }
 function M.parse_vimgrep(content)
@@ -30,13 +46,6 @@ function M.cmdedit(action, path, row, col)
   end
   vim.cmd("normal! zz")
 end
-
-local key_actions = {
-  ['ctrl-v']='vsplit',
-  ['ctrl-s']='split',
-  ['ctrl-t']='tabe',
-  ['ctrl-f']=open_float_win,
-}
 
 function M.handle_key(key, path, row, col)
   local action = key_actions[key] or 'tab drop'

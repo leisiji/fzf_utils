@@ -147,10 +147,10 @@ function M.toggle_preview()
   preview_win.toggle = not toggle
 end
 
-function M.open_float_win(path, row, col, width, height, focus)
+function M.open_float_win(path, row, col, width, height, focus, zindex)
   local opts = {
     relative = 'editor', border = 'rounded',
-    width = width, height = height, zindex = 200,
+    width = width, height = height, zindex = zindex or 60,
     row = row, col = col,
   }
   local b = create_buf(path)
@@ -169,12 +169,12 @@ function M.get_preview_action(path, word)
       return ""
     end
   end)
-  return u.expect_key .. fzf_preview(shell)
+  return u.expect_key() .. fzf_preview(shell)
 end
 
 function M.vimgrep_preview(word)
   preview_win.word = word
-  return fzf_preview(act)..u.expect_key
+  return fzf_preview(act)..u.expect_key()
 end
 
 init_opts()

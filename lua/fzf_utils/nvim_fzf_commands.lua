@@ -51,7 +51,7 @@ function M.find_files()
   end
 
   coroutine.wrap(function ()
-    local choices = fzf(command, utils.expect_key)
+    local choices = fzf(command, utils.expect_key())
     if choices[1] == 'ctrl-r' then
       os.remove(cache_file)
       vim.schedule(M.find_files)
@@ -72,7 +72,7 @@ function M.buffers()
         end
       end
     end
-    local choices = fzf(items, utils.expect_key)
+    local choices = fzf(items, utils.expect_key())
     utils.handle_key(choices[1], choices[2], nil, nil)
   end)()
 end
