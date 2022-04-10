@@ -17,7 +17,7 @@ local function add_file(f)
     local data
     local res = f .. '\n'
     local i, p = 1, 1
-    local _, fd = a.await(uv.fs_open(mru, "r+", 438))
+    local _, fd = a.await(uv.fs_open(mru, 'r+', 438))
     local _, stat = a.await(uv.fs_fstat(fd))
 
     if vim.g.fzf_mru_mtime ~= stat.mtime.sec then
