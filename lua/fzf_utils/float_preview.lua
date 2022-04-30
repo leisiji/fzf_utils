@@ -1,52 +1,57 @@
 -- references: https://github.com/rmagatti/goto-preview
 -- preview is single instance
 local M = {}
-local u = require('fzf_utils.utils')
+local u = require("fzf_utils.utils")
 local api = vim.api
 local percent = 0.5
 local preview_win = {
-  win = nil, path = nil, line = nil,
-  toggle = false, word = nil, match_id = nil
+  win = nil,
+  path = nil,
+  line = nil,
+  toggle = false,
+  word = nil,
+  match_id = nil,
 }
+local group = "close_float_fzf"
 
 local function float_act(str)
   return string.format([[<cmd>lua require('fzf_utils.float_preview').%s<cr>]], str)
 end
 
 local keymap = {
-  ['<C-p>'] = float_act('toggle_preview()'),
-  ['<M-j>'] = float_act('scroll(1)'),
-  ['<M-k>'] = float_act('scroll(-1)'),
+  ["<C-p>"] = float_act("toggle_preview()"),
+  ["<M-j>"] = float_act("scroll(1)"),
+  ["<M-k>"] = float_act("scroll(-1)"),
 }
 
 local function w_exe(win, cmd)
-  vim.fn.win_execute(win, 'norm! ' .. cmd)
+  vim.fn.win_execute(win, "norm! " .. cmd)
 end
 
 -- parse preview percentage and keymaps from fzf env
 local function init_opts()
-  local fzf_opt = vim.env['FZF_DEFAULT_OPTS']
+  local fzf_opt = vim.env["FZF_DEFAULT_OPTS"]
   if fzf_opt ~= nil then
     local parse_percent = string.match(fzf_opt, ".*:(%d+)%.*")
     if parse_percent ~= nil then
       percent = parse_percent / 100
     end
   end
+  api.nvim_create_augroup(group, { clear = true })
 end
 
 local function set_float_win_options(w)
-  api.nvim_win_set_option(w, 'signcolumn', 'no')
-  api.nvim_win_set_option(w, 'winhl', 'NormalFloat:Normal')
+  api.nvim_win_set_option(w, "signcolumn", "no")
+  api.nvim_win_set_option(w, "winhl", "NormalFloat:Normal")
 end
 
 local function highlight_word(word, w)
-  return vim.fn.matchadd('LspReferenceText',
-      string.format([[\V\<%s\>]], word), 11, -1, { window = w })
+  return vim.fn.matchadd("LspReferenceText", string.format([[\V\<%s\>]], word), 11, -1, { window = w })
 end
 
 local function create_buf(path)
   local b = vim.fn.bufadd(path)
-  api.nvim_buf_set_option(b, 'bufhidden', 'wipe')
+  api.nvim_buf_set_option(b, "bufhidden", "wipe")
   return b
 end
 
@@ -61,14 +66,14 @@ local function create_win(path)
 
   -- buffer related
   for k, v in pairs(keymap) do
-    api.nvim_buf_set_keymap(0, 't', k, v, { noremap = true })
+    api.nvim_buf_set_keymap(0, "t", k, v, { noremap = true })
   end
-  vim.cmd([[
-    augroup close_float_fzf
-      au! * <buffer>
-      au BufHidden <buffer> lua require('fzf_utils.float_preview').close_preview_win()
-    augroup end
-  ]])
+  local bufnr = api.nvim_get_current_buf()
+  api.nvim_clear_autocmds({ group = group, buffer = bufnr })
+  api.nvim_create_autocmd(
+    { "BufHidden" },
+    { group = group, callback = require("fzf_utils.float_preview").close_preview_win, buffer = bufnr }
+  )
 
   local word = preview_win.word
   if word ~= nil then
@@ -88,8 +93,8 @@ local function open_floating_win_(path, l)
     api.nvim_win_set_buf(w, b)
     set_float_win_options(w)
   end
-  api.nvim_win_set_cursor(w, {l, 0})
-  w_exe(w, 'zz')
+  api.nvim_win_set_cursor(w, { l, 0 })
+  w_exe(w, "zz")
 end
 
 local function open_floating_win(path, l)
@@ -104,10 +109,10 @@ local function fzf_preview(cmd)
   return string.format([[ --preview-window=right,0 --preview=%s ]], cmd)
 end
 
-local act = require('fzf.actions').action(function(s, _, _)
+local act = require("fzf.actions").action(function(s, _, _)
   local c = u.parse_vimgrep(s[1])
   open_floating_win(c[1], c[2])
-  return ''
+  return ""
 end)
 
 local function close_win()
@@ -134,7 +139,7 @@ function M.scroll(line)
   else
     cmd = [[]]
   end
-  w_exe(preview_win.win, math.abs(line)..cmd)
+  w_exe(preview_win.win, math.abs(line) .. cmd)
 end
 
 function M.toggle_preview()
@@ -149,9 +154,13 @@ end
 
 function M.open_float_win(path, row, col, width, height, focus, zindex)
   local opts = {
-    relative = 'editor', border = 'rounded',
-    width = width, height = height, zindex = zindex or 60,
-    row = row, col = col,
+    relative = "editor",
+    border = "rounded",
+    width = width,
+    height = height,
+    zindex = zindex or 60,
+    row = row,
+    col = col,
   }
   local b = create_buf(path)
   local w = api.nvim_open_win(b, focus or false, opts)
@@ -161,7 +170,7 @@ function M.open_float_win(path, row, col, width, height, focus, zindex)
 end
 
 function M.get_preview_action(path, word)
-  local action = require('fzf.actions').action
+  local action = require("fzf.actions").action
   local shell = action(function(s, _, _)
     if s ~= nil then
       preview_win.word = word
@@ -174,7 +183,7 @@ end
 
 function M.vimgrep_preview(word)
   preview_win.word = word
-  return fzf_preview(act)..u.expect_key()
+  return fzf_preview(act) .. u.expect_key()
 end
 
 init_opts()
