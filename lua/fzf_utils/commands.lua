@@ -5,27 +5,27 @@ local function get_fzf(submodule)
 end
 local fzf_commands = get_fzf('nvim_fzf_commands')
 
-local function gtags_command(arg2, arg3)
+local function gtags_command(args)
   local gtags = get_fzf('gtags')
 
-  if arg2 == "-d" then
-    gtags.find_definition(arg3)
-  elseif arg2 == "-r" then
-    gtags.find_references(arg3)
-  elseif arg2 == "--update" then
+  if args[2] == "-d" then
+    gtags.find_definition(args[3])
+  elseif args[2] == "-r" then
+    gtags.find_references(args[3])
+  elseif args[2] == "--update" then
     gtags.generate_gtags()
-  elseif arg2 == "--update-buffer" then
+  elseif args[2] == "--update-buffer" then
     gtags.gtags_update_buffer()
   end
 end
 
-local function rg_command(arg2, arg3)
+local function rg_command(args)
   local rg = get_fzf('rg')
 
-  if arg2 == "--all-buffers" then
-    rg.search_all_buffers(arg3)
+  if args[2] == "--all-buffers" then
+    rg.search_all_buffers(args[3])
   else
-    rg.search_path(arg2, arg3)
+    rg.search_path(args[2], args[3])
   end
 end
 
@@ -34,23 +34,23 @@ local function ctags_command()
   ctags.get_cur_buf_func()
 end
 
-local function vim_command(arg2)
+local function vim_command(args)
   local u = get_fzf('vim_utils')
-  if arg2 ~= nil and u[arg2] ~= nil then
-    u[arg2]()
+  if args[2] ~= nil and u[args[2]] ~= nil then
+    u[args[2]]()
   end
 end
 
--- arg4 to support 'tab drop'
-local function lsp_command(arg2, arg3, arg4)
+-- args[4] to support 'tab drop'
+local function lsp_command(args)
   local lsp = get_fzf('lsp')
 
-  if arg4 ~= nil then
-    arg3 = string.format('%s %s', arg3, arg4)
+  if args[4] ~= nil then
+    args[3] = string.format('%s %s', args[3], args[4])
   end
 
-  if arg2 ~= nil and lsp[arg2] ~= nil then
-    lsp[arg2](arg3)
+  if args[2] ~= nil and lsp[args[2]] ~= nil then
+    lsp[args[2]](args[3])
   end
 end
 
@@ -68,17 +68,24 @@ local command = {
   commit = fzf_commands.commit,
 }
 
-function M.load_command(arg1, ...)
-  if arg1 == nil then
+function M.load(args)
+  if args == nil then
     return
   end
 
-  local sub = string.sub(arg1, 3)
+  local sub = string.sub(args[1], 3)
   for idx,val in pairs(command) do
     if sub == idx then
-      val(...)
+      val(args)
       break
     end
+  end
+end
+
+function M.complete()
+  local list = {}
+  for key, _ in pairs(command) do
+    list[#list+1] = "--" .. key
   end
 end
 
