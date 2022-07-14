@@ -11,6 +11,7 @@ local preview_win = {
   toggle = false,
   word = nil,
   match_id = nil,
+  lsp_cancel = nil,
 }
 local group = "close_float_fzf"
 
@@ -123,13 +124,56 @@ local function close_win()
   preview_win.win = nil
 end
 
+local function parse_context(result, row)
+  if type(result) ~= "table" then
+    return
+  end
+
+  for _, item in ipairs(result) do
+    local sym_range = nil
+    if item.location then
+      sym_range = item.location.range
+    elseif item.range then
+      sym_range = item.range
+    end
+
+    local start_line = sym_range.start.line
+    local end_line = sym_range["end"].line
+
+    if sym_range ~= nil then
+      if row >= start_line and row <= end_line then
+        print(item.name)
+        break
+      end
+    end
+  end
+end
+
+local function display_context(buf, row)
+  if nil ~= preview_win.lsp_cancel then
+    preview_win.lsp_cancel()
+  end
+  if #vim.lsp.get_active_clients({ bufnr = buf }) ~= 0 then
+    local lsp_util = require("vim.lsp.util")
+    local params = { textDocument = lsp_util.make_text_document_params() }
+    local _, cancel = vim.lsp.buf_request(buf, "textDocument/documentSymbol", params, function(_, result, _, _)
+      parse_context(result, row)
+    end)
+    preview_win.lsp_cancel = cancel
+  end
+end
+
 -------------- Module Export Function -----------
 function M.close_preview_win()
   close_win()
+  if nil ~= preview_win.lsp_cancel then
+    preview_win.lsp_cancel()
+  end
   preview_win.path = nil
   preview_win.toggle = false
   preview_win.match_id = nil
   preview_win.word = nil
+  preview_win.lsp_cancel = nil
 end
 
 function M.scroll(line)
@@ -164,6 +208,7 @@ function M.open_float_win(path, row, col, width, height, focus, zindex)
   }
   local b = create_buf(path)
   local w = api.nvim_open_win(b, focus or false, opts)
+  display_context(b, row)
 
   set_float_win_options(w)
   return w
