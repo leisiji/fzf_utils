@@ -13,6 +13,7 @@ local preview_win = {
   word = nil,
   match_id = nil,
   lsp_cancel = nil,
+  timer = nil,
 }
 local group = "close_float_fzf"
 
@@ -91,7 +92,7 @@ local function show_context(context)
   end
   local pos = api.nvim_win_get_position(preview_win.win)
   local width = api.nvim_win_get_width(preview_win.win)
-  local win_width = 20
+  local win_width = #context
   local opts = {
     relative = "editor",
     border = "rounded",
@@ -167,7 +168,13 @@ end
 
 local function open_floating_win(path, l)
   if not preview_win.toggle then
-    open_floating_win_(path, l)
+    if preview_win.timer ~= nil then
+      vim.loop.timer_stop(preview_win.timer)
+    end
+    preview_win.timer = vim.defer_fn(function ()
+      preview_win.timer = nil
+      open_floating_win_(path, l)
+    end, 400)
   end
   preview_win.line = l
   preview_win.path = path
@@ -189,20 +196,24 @@ local function close_win(w)
   end
 end
 
+local function close_float_win()
+  close_win(preview_win.win)
+  close_win(preview_win.context_win)
+  preview_win.win = nil
+  preview_win.context_win = nil
+end
+
 -------------- Module Export Function -----------
 function M.close_preview_win()
   if nil ~= preview_win.lsp_cancel then
     preview_win.lsp_cancel()
   end
-  close_win(preview_win.win)
-  close_win(preview_win.context_win)
+  close_float_win()
   preview_win.path = nil
   preview_win.toggle = false
   preview_win.match_id = nil
   preview_win.word = nil
   preview_win.lsp_cancel = nil
-  preview_win.win = nil
-  preview_win.context_win = nil
 end
 
 function M.scroll(line)
@@ -218,7 +229,7 @@ end
 function M.toggle_preview()
   local toggle = preview_win.toggle
   if not toggle then
-    close_win()
+    close_float_win()
   else
     open_floating_win_(preview_win.path, preview_win.line)
   end
