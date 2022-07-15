@@ -6,6 +6,7 @@ local api = vim.api
 local percent = 0.5
 local preview_win = {
   win = nil,
+  context_win = nil,
   path = nil,
   line = nil,
   toggle = false,
@@ -63,7 +64,7 @@ local function create_win(path)
   local width = math.floor(fzf_width * percent)
   local row = fzf_pos[2] + fzf_width - width
 
-  local w = M.open_float_win(path, fzf_pos[1], row, width, fzf_height)
+  local w, b = M.open_float_win(path, fzf_pos[1], row, width, fzf_height)
 
   -- buffer related
   for k, v in pairs(keymap) do
@@ -81,20 +82,86 @@ local function create_win(path)
     preview_win.match_id = highlight_word(word, w)
   end
 
-  return w
+  return w, b
+end
+
+local function show_context(context)
+  if preview_win.win == nil then
+    return
+  end
+  local pos = api.nvim_win_get_position(preview_win.win)
+  local width = api.nvim_win_get_width(preview_win.win)
+  local win_width = 20
+  local opts = {
+    relative = "editor",
+    border = "rounded",
+    width = win_width,
+    height = 1,
+    zindex = 60,
+    row = pos[1],
+    col = pos[2] + width - win_width,
+    style = "minimal",
+  }
+  local b = api.nvim_create_buf(false, false)
+  api.nvim_buf_set_option(b, 'bufhidden', 'delete')
+  api.nvim_buf_set_lines(b, 0, 0, true, { context })
+  local w = api.nvim_open_win(b, false, opts)
+  set_float_win_options(w)
+  preview_win.context_win = w
+end
+
+local function parse_context(result, row)
+  if type(result) ~= "table" then
+    return
+  end
+
+  for _, item in ipairs(result) do
+    local sym_range = nil
+    if item.location then
+      sym_range = item.location.range
+    elseif item.range then
+      sym_range = item.range
+    end
+
+    local start_line = sym_range.start.line
+    local end_line = sym_range["end"].line
+
+    if sym_range ~= nil then
+      if row >= start_line and row <= end_line then
+        show_context(item.name)
+        break
+      end
+    end
+  end
+end
+
+local function display_context(buf, row)
+  if nil ~= preview_win.lsp_cancel then
+    preview_win.lsp_cancel()
+  end
+  if #vim.lsp.get_active_clients({ bufnr = buf }) ~= 0 then
+    local lsp_util = require("vim.lsp.util")
+    local params = { textDocument = lsp_util.make_text_document_params(buf) }
+    local _, cancel = vim.lsp.buf_request(buf, "textDocument/documentSymbol", params, function(_, result, _, _)
+      parse_context(result, row)
+    end)
+    preview_win.lsp_cancel = cancel
+  end
 end
 
 local function open_floating_win_(path, l)
   local w = preview_win.win
+  local b
   if w == nil then
-    w = create_win(path)
+    w, b = create_win(path)
     preview_win.win = w
   elseif path ~= preview_win.path then
-    local b = create_buf(path)
+    b = create_buf(path)
     api.nvim_win_set_buf(w, b)
     set_float_win_options(w)
   end
   api.nvim_win_set_cursor(w, { l, 0 })
+  display_context(b, l)
   w_exe(w, "zz")
 end
 
@@ -116,64 +183,26 @@ local act = require("fzf.actions").action(function(s, _, _)
   return ""
 end)
 
-local function close_win()
-  local w = preview_win.win
+local function close_win(w)
   if w ~= nil and api.nvim_win_is_valid(w) then
     api.nvim_win_close(w, true)
-  end
-  preview_win.win = nil
-end
-
-local function parse_context(result, row)
-  if type(result) ~= "table" then
-    return
-  end
-
-  for _, item in ipairs(result) do
-    local sym_range = nil
-    if item.location then
-      sym_range = item.location.range
-    elseif item.range then
-      sym_range = item.range
-    end
-
-    local start_line = sym_range.start.line
-    local end_line = sym_range["end"].line
-
-    if sym_range ~= nil then
-      if row >= start_line and row <= end_line then
-        print(item.name)
-        break
-      end
-    end
-  end
-end
-
-local function display_context(buf, row)
-  if nil ~= preview_win.lsp_cancel then
-    preview_win.lsp_cancel()
-  end
-  if #vim.lsp.get_active_clients({ bufnr = buf }) ~= 0 then
-    local lsp_util = require("vim.lsp.util")
-    local params = { textDocument = lsp_util.make_text_document_params() }
-    local _, cancel = vim.lsp.buf_request(buf, "textDocument/documentSymbol", params, function(_, result, _, _)
-      parse_context(result, row)
-    end)
-    preview_win.lsp_cancel = cancel
   end
 end
 
 -------------- Module Export Function -----------
 function M.close_preview_win()
-  close_win()
   if nil ~= preview_win.lsp_cancel then
     preview_win.lsp_cancel()
   end
+  close_win(preview_win.win)
+  close_win(preview_win.context_win)
   preview_win.path = nil
   preview_win.toggle = false
   preview_win.match_id = nil
   preview_win.word = nil
   preview_win.lsp_cancel = nil
+  preview_win.win = nil
+  preview_win.context_win = nil
 end
 
 function M.scroll(line)
@@ -208,10 +237,9 @@ function M.open_float_win(path, row, col, width, height, focus, zindex)
   }
   local b = create_buf(path)
   local w = api.nvim_open_win(b, focus or false, opts)
-  display_context(b, row)
 
   set_float_win_options(w)
-  return w
+  return w, b
 end
 
 function M.get_preview_action(path, word)

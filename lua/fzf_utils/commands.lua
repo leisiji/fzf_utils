@@ -87,6 +87,7 @@ function M.complete()
   for key, _ in pairs(command) do
     list[#list+1] = "--" .. key
   end
+  return list
 end
 
 return M
