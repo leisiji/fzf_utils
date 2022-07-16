@@ -91,18 +91,17 @@ function PreviewWin:create_win(path)
   return w, b
 end
 
-local function show_context(context, win)
-  local pos = api.nvim_win_get_position(win)
-  local width = api.nvim_win_get_width(win)
-  local win_width = #context
+local function show_context(context, rel_win)
   local opts = {
-    relative = "editor",
+    relative = "win",
+    win = rel_win,
+    anchor = "NE",
     border = "rounded",
-    width = win_width,
+    width = #context,
     height = 1,
     zindex = 60,
-    row = pos[1],
-    col = pos[2] + width - win_width,
+    row = 0,
+    col = api.nvim_win_get_width(rel_win),
     style = "minimal",
     focusable = false,
   }
@@ -140,7 +139,17 @@ local function parse_context(result, row)
   return nil
 end
 
-function PreviewWin:display_context(buf, row)
+function PreviewWin:disp_context(context)
+  if self.context_win ~= nil then
+    local b = api.nvim_win_get_buf(self.context_win)
+    api.nvim_win_set_width(self.context_win, #context)
+    api.nvim_buf_set_lines(b, 0, 0, true, { context })
+  else
+    self.context_win = show_context(context, self.win)
+  end
+end
+
+function PreviewWin:disp_lsp_context(buf, row)
   if nil ~= self.lsp_cancel then
     self.lsp_cancel()
   end
@@ -151,7 +160,7 @@ function PreviewWin:display_context(buf, row)
       if self.win ~= nil then
         local context = parse_context(result, row)
         if context ~= nil then
-          self.context_win = show_context(context, self.win)
+          self:disp_context(context)
         end
       end
     end)
@@ -160,18 +169,21 @@ function PreviewWin:display_context(buf, row)
 end
 
 function PreviewWin:open_floating_win_(path, l)
-  local w = self.win
+  local w
   local b
-  if w == nil then
+  if self.win == nil then
     w, b = self:create_win(path)
     self.win = w
   elseif path ~= self.path then
     b = create_buf(path)
-    api.nvim_win_set_buf(w, b)
-    set_float_win_options(w)
+    api.nvim_win_set_buf(self.win, b)
+    set_float_win_options(self.win)
+  else
+    w = self.win
+    b = api.nvim_win_get_buf(w)
   end
   api.nvim_win_set_cursor(w, { l, 0 })
-  self:display_context(b, l)
+  self:disp_lsp_context(b, l)
 end
 
 function PreviewWin:open_floating_win(path, l)
