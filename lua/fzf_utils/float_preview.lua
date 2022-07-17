@@ -14,6 +14,7 @@ function PreviewWin:new()
     win = nil,
     context_win = nil,
     path = nil,
+    prev_path = nil,
     line = nil,
     toggled = false,
     word = nil,
@@ -169,19 +170,21 @@ function PreviewWin:disp_lsp_context(buf, row)
 end
 
 function PreviewWin:open_floating_win_(path, l)
-  local w
+  local w = self.win
   local b
-  if self.win == nil then
+
+  if w == nil then
     w, b = self:create_win(path)
     self.win = w
-  elseif path ~= self.path then
+  elseif path ~= self.prev_path then
     b = create_buf(path)
     api.nvim_win_set_buf(self.win, b)
     set_float_win_options(self.win)
   else
-    w = self.win
     b = api.nvim_win_get_buf(w)
   end
+
+  self.prev_path = path
   api.nvim_win_set_cursor(w, { l, 0 })
   self:disp_lsp_context(b, l)
 end
@@ -192,8 +195,8 @@ function PreviewWin:open_floating_win(path, l)
       vim.loop.timer_stop(self.timer)
     end
     self.timer = vim.defer_fn(function()
-      self.timer = nil
       self:open_floating_win_(path, l)
+      self.timer = nil
     end, 300)
   end
   self.line = l
