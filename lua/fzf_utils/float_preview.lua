@@ -217,7 +217,7 @@ function PreviewWin:close_float_win()
   if nil ~= self.lsp_cancel then
     self.lsp_cancel()
   end
-  self.path = nil
+  self.prev_path = nil
   self.toggled = false
   self.match_id = nil
   self.word = nil
