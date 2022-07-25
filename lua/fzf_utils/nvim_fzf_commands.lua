@@ -53,7 +53,7 @@ function M.find_files()
     local choices = fzf(command, utils.expect_key() .. "ctrl-r")
     if choices[1] == "ctrl-r" then
       os.remove(cache_file)
-      vim.schedule(M.find_files)
+      vim.defer_fn(M.find_files, 200)
     else
       utils.handle_key(choices[1], choices[2], nil, nil)
     end
