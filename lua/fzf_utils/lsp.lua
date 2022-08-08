@@ -5,7 +5,7 @@ local a = require("plenary.async_lib")
 local request = require("plenary.async_lib.lsp").buf_request_all
 local fzf = require("fzf").fzf
 local preview = require("fzf_utils.float_preview").vimgrep_preview
-local color_vimgrep = "\27[0;35m%s:%d:%d\27[0m %s"
+local color_vimgrep = "\27[0;35m%s\27[0m:\27[0;32m%d:%d\27[0m %s"
 
 local function gen_vimgrep(pattern, item)
   local s = string.format(pattern, fn.fnamemodify(item.filename, ":."), item.lnum, item.col, item.text)
@@ -52,7 +52,7 @@ end
 
 local function lsp_async(method, action)
   a.async_void(function()
-    local params = lsp.util.make_position_params()
+    local params = lsp.util.make_position_params(0, nil)
     params.context = { includeDeclaration = true }
     local r = a.await(request(0, method, params))
     if r == nil then
