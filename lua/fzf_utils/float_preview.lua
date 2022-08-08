@@ -144,7 +144,7 @@ function PreviewWin:disp_context(context)
   if self.context_win ~= nil then
     local b = api.nvim_win_get_buf(self.context_win)
     api.nvim_win_set_width(self.context_win, #context)
-    api.nvim_buf_set_lines(b, 0, 0, true, { context })
+    api.nvim_buf_set_lines(b, 0, -1, true, { context })
   else
     self.context_win = show_context(context, self.win)
   end
