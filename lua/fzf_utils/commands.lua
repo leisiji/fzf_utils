@@ -82,12 +82,14 @@ function M.load(args)
   end
 end
 
-function M.complete()
+function M.complete(args)
   local list = {}
-  for key, _ in pairs(command) do
-    list[#list + 1] = "--" .. key
+  if #args == 0 then
+    for key, _ in pairs(command) do
+      list[#list + 1] = "--" .. key
+    end
+    return list
   end
-  return list
 end
 
 return M
