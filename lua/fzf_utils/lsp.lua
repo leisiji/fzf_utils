@@ -3,8 +3,6 @@ local lsp, fn = vim.lsp, vim.fn
 local utils = require("fzf_utils.utils")
 local a = require("plenary.async_lib")
 local request = require("plenary.async_lib.lsp").buf_request_all
-local fzf = require("fzf").fzf
-local preview = require("fzf_utils.float_preview").vimgrep_preview
 local color_vimgrep = "\27[0;35m%s\27[0m:\27[0;32m%d:%d\27[0m %s"
 
 local function gen_vimgrep(pattern, item)
@@ -30,23 +28,16 @@ local function lsp_to_vimgrep(results)
   return greps
 end
 
-local function lsp_to_fzf(res, cli_args)
-  coroutine.wrap(function()
-    local choices = fzf(res, cli_args)
-    local c = utils.parse_vimgrep(choices[2])
-    utils.handle_key(choices[1], c[1], c[2], c[3])
-  end)()
-end
-
 -- core function for finding def or ref
 local function lsp_handle(ret, action)
+  local preview = require("fzf_utils.float_preview").vimgrep_preview
   local res = lsp_to_vimgrep(ret)
 
   if #res == 1 then
     local c = utils.parse_vimgrep(res[1])
     utils.cmdedit(action, c[1], c[2], c[3])
   else
-    lsp_to_fzf(res, preview(fn.expand("<cword>")))
+    utils.vimgrep_fzf(res, preview(fn.expand("<cword>")), nil)
   end
 end
 
@@ -85,34 +76,14 @@ local function symbols_to_vimgrep(results)
 end
 
 function M.workspace_symbol()
-  local timer
   local bufnr = fn.bufnr()
-  local raw_fzf = require("fzf.actions").raw_async_action
-
-  local ws_act = raw_fzf(function(pipe, args)
-    if args == nil or args[2] == "" then
-      return
+  utils.fzf_live(function(query, pipe)
+    local r = a.await(request(bufnr, "workspace/symbol", { query = query }))
+    if r ~= nil then
+      a.await(a.uv.write(pipe, symbols_to_vimgrep(r)))
+      a.await(a.uv.close(pipe))
     end
-
-    if timer ~= nil then
-      vim.loop.timer_stop(timer)
-      timer = nil
-    end
-
-    timer = vim.defer_fn(
-      a.async_void(function()
-        local r = a.await(request(bufnr, "workspace/symbol", { query = args[2] }))
-        if r ~= nil then
-          a.await(a.uv.write(pipe, symbols_to_vimgrep(r)))
-          a.await(a.uv.close(pipe))
-        end
-      end),
-      1000
-    )
-  end)
-
-  local act = preview() .. string.format([[ --bind "change:reload:%s {q}"]], ws_act)
-  lsp_to_fzf({}, act)
+  end, nil)
 end
 
 return M

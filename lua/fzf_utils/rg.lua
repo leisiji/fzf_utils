@@ -3,9 +3,10 @@ local fn = vim.fn
 local M = {}
 local utils = require("fzf_utils.utils")
 local preview = require("fzf_utils.float_preview").vimgrep_preview
+local rg = "rg --with-filename --line-number --column --color ansi "
 
 local function get_rg_cmd(pattern, dir)
-  local rgcmd = "rg -w --with-filename --line-number --column --color ansi " .. fn.shellescape(pattern)
+  local rgcmd = rg .. "-w " .. fn.shellescape(pattern)
 
   if type(dir) == "string" then
     rgcmd = rgcmd .. " " .. dir
@@ -52,6 +53,33 @@ function M.search_all_buffers(pattern)
     local choices = fzf(get_all_buffers(pattern), preview(pattern))
     deal_with_rg_results(choices[1], choices[2])
   end)()
+end
+
+function M.live_grep(path)
+  local job = nil
+  local a = require("plenary.async_lib")
+  utils.fzf_live(function(query, pipe)
+    local cmd = rg .. query .. " " .. (path or ".")
+    if job ~= nil then
+      vim.fn.jobstop(job)
+    end
+    job = vim.fn.jobstart(cmd, {
+      on_stdout = function(_, data, _)
+        a.async_void(function()
+          a.await(a.uv.write(pipe, vim.fn.join(data, "\n")))
+        end)()
+      end,
+      on_exit = function()
+        a.async_void(function()
+          a.await(a.uv.close(pipe))
+        end)()
+      end,
+    })
+  end, function()
+    if job ~= nil then
+      vim.fn.jobstop(job)
+    end
+  end)
 end
 
 return M

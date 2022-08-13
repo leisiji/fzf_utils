@@ -25,8 +25,21 @@ local function rg_command(args)
   if args[2] == "--all-buffers" then
     rg.search_all_buffers(args[3])
   else
-    rg.search_path(args[2], args[3])
+    local path = args[3]
+    if path ~= nil then
+      path = vim.fn.shellescape(path)
+    end
+    rg.search_path(args[2], path)
   end
+end
+
+local function live_grep(args)
+  local rg = get_fzf("rg")
+    local path = args[3]
+    if path ~= nil then
+      path = vim.fn.shellescape(path)
+    end
+    rg.live_grep(path)
 end
 
 local function ctags_command()
@@ -64,8 +77,11 @@ local command = {
   vim = vim_command,
   gtags = gtags_command,
   lsp = lsp_command,
-  mru = require("fzf_utils.mru").fzf_mru,
+  mru = function()
+    require("fzf_utils.mru").fzf_mru()
+  end,
   commit = fzf_commands.commit,
+  live_grep = live_grep,
 }
 
 function M.load(args)
@@ -96,11 +112,11 @@ end
 local function path_complete(path, cursor)
   local list = {}
 
-  if (path ~= nil and cursor == "/") or (path == nil and cursor == " ")  then
+  if (path ~= nil and cursor == "/") or (path == nil and cursor == " ") or path == ".." then
     local dir = path or "."
     for name, type in vim.fs.dir(dir) do
       if type == "directory" and string.sub(name, 1, 1) ~= "." then
-        list[#list+1] = (path or "") .. name .. "/"
+        list[#list + 1] = (path or "") .. name .. "/"
       end
     end
   elseif path ~= nil then
@@ -121,7 +137,7 @@ local function path_complete(path, cursor)
     for name, type in vim.fs.dir(dir) do
       if type == "directory" and string.sub(name, 1, 1) ~= "." then
         if string.find(name, match) then
-          list[#list+1] = dir .. name .. "/"
+          list[#list + 1] = dir .. name .. "/"
         end
       end
     end
@@ -145,7 +161,6 @@ function M.complete(_, line, pos)
   if num == 1 then
     return gen_cmds()
   elseif num == 2 and string.sub(line, pos, pos) ~= " " then
-
     if args[2] == "--gtags" then
       return { "-d", "-r" }
     end
@@ -164,14 +179,11 @@ function M.complete(_, line, pos)
       end
       return list
     end
-
   elseif num == 3 or num == 4 then
-
     if args[2] == "--rg" then
       local cursor = string.sub(line, pos, pos)
       return path_complete(args[4], cursor)
     end
-
   end
 
   return nil
