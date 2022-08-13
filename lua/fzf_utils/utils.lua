@@ -14,7 +14,7 @@ local key_actions = {
   ["ctrl-v"] = "vsplit",
   ["ctrl-s"] = "split",
   ["ctrl-t"] = "tabe",
-  ["ctrl-f"] = open_float_win,
+  ["ctrl-e"] = open_float_win,
 }
 
 function M.get_leading_num(str)
