@@ -57,27 +57,26 @@ end
 
 function M.live_grep(path)
   coroutine.wrap(function()
-    local a = require("plenary.async_lib")
-    local job
+    local job = nil
 
     utils.fzf_live(function(query, pipe)
       local cmd = rg .. query .. " " .. (path or ".")
-      vim.fn.jobstop(job)
+      if job ~= nil then
+        vim.fn.jobstop(job)
+      end
       job = vim.fn.jobstart(cmd, {
         on_stdout = function(_, data, _)
-          a.async_void(function()
-            a.await(a.uv.write(pipe, vim.fn.join(data, "\n")))
-          end)()
+          vim.loop.write(pipe, vim.fn.join(data, "\n"))
         end,
         on_exit = function()
-          a.async_void(function()
-            a.await(a.uv.close(pipe))
-          end)()
+          vim.loop.close(pipe)
         end,
       })
     end)
 
-    vim.fn.jobstop(job)
+    if job ~= nil then
+      vim.fn.jobstop(job)
+    end
   end)()
 end
 

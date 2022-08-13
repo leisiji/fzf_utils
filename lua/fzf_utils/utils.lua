@@ -78,22 +78,26 @@ function M.vimgrep_fzf(res, act)
   M.handle_key(choices[1], c[1], c[2], c[3])
 end
 
-function M.fzf_live(func, fini)
+function M.fzf_live(fn)
   local raw_fzf = require("fzf.actions").raw_async_action
 
   local ws_act = raw_fzf(function(pipe, args)
-    if args == nil or args[2] == "" or args[2] == nil then
+    if args[2] == "" or args[2] == nil then
       a.async_void(a.uv.close(pipe))()
       return
     end
 
     a.async_void(function()
-      func(args[2], pipe)
+      fn(args[2], pipe)
     end)()
   end)
 
   local preview = require("fzf_utils.float_preview").vimgrep_preview
-  local act = preview() .. string.format([[ --disabled --bind "change:reload:sleep 1; %s {q}"]], ws_act)
+  local act = preview() .. string.format(
+    [[ --disabled \
+    --bind "alt-o:unbind(change,alt-o)+change-prompt(2. fzf> )+enable-search+clear-query" \
+    --bind "change:reload:sleep 1; %s {q}"]],
+  ws_act)
   M.vimgrep_fzf({}, act)
 end
 
