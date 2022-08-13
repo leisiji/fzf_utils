@@ -56,30 +56,29 @@ function M.search_all_buffers(pattern)
 end
 
 function M.live_grep(path)
-  local job = nil
-  local a = require("plenary.async_lib")
-  utils.fzf_live(function(query, pipe)
-    local cmd = rg .. query .. " " .. (path or ".")
-    if job ~= nil then
+  coroutine.wrap(function()
+    local a = require("plenary.async_lib")
+    local job
+
+    utils.fzf_live(function(query, pipe)
+      local cmd = rg .. query .. " " .. (path or ".")
       vim.fn.jobstop(job)
-    end
-    job = vim.fn.jobstart(cmd, {
-      on_stdout = function(_, data, _)
-        a.async_void(function()
-          a.await(a.uv.write(pipe, vim.fn.join(data, "\n")))
-        end)()
-      end,
-      on_exit = function()
-        a.async_void(function()
-          a.await(a.uv.close(pipe))
-        end)()
-      end,
-    })
-  end, function()
-    if job ~= nil then
-      vim.fn.jobstop(job)
-    end
-  end)
+      job = vim.fn.jobstart(cmd, {
+        on_stdout = function(_, data, _)
+          a.async_void(function()
+            a.await(a.uv.write(pipe, vim.fn.join(data, "\n")))
+          end)()
+        end,
+        on_exit = function()
+          a.async_void(function()
+            a.await(a.uv.close(pipe))
+          end)()
+        end,
+      })
+    end)
+
+    vim.fn.jobstop(job)
+  end)()
 end
 
 return M

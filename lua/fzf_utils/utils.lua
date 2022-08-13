@@ -72,19 +72,13 @@ M.readfile = async(function(path)
   return data
 end)
 
-function M.vimgrep_fzf(res, act, fini)
-  coroutine.wrap(function()
-    local choices = require("fzf").fzf(res, act)
-    local c = M.parse_vimgrep(choices[2])
-    M.handle_key(choices[1], c[1], c[2], c[3])
-    if fini ~= nil then
-      fini()
-    end
-  end)()
+function M.vimgrep_fzf(res, act)
+  local choices = require("fzf").fzf(res, act)
+  local c = M.parse_vimgrep(choices[2])
+  M.handle_key(choices[1], c[1], c[2], c[3])
 end
 
 function M.fzf_live(func, fini)
-  local timer
   local raw_fzf = require("fzf.actions").raw_async_action
 
   local ws_act = raw_fzf(function(pipe, args)
@@ -93,22 +87,14 @@ function M.fzf_live(func, fini)
       return
     end
 
-    if timer ~= nil then
-      vim.loop.timer_stop(timer)
-      timer = nil
-    end
-
-    timer = vim.defer_fn(
-      a.async_void(function()
-        func(args[2], pipe)
-      end),
-      1000
-    )
+    a.async_void(function()
+      func(args[2], pipe)
+    end)()
   end)
 
   local preview = require("fzf_utils.float_preview").vimgrep_preview
-  local act = preview() .. string.format([[ --disabled --bind "change:reload:%s {q}"]], ws_act)
-  M.vimgrep_fzf({}, act, fini)
+  local act = preview() .. string.format([[ --disabled --bind "change:reload:sleep 1; %s {q}"]], ws_act)
+  M.vimgrep_fzf({}, act)
 end
 
 return M

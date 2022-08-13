@@ -37,7 +37,9 @@ local function lsp_handle(ret, action)
     local c = utils.parse_vimgrep(res[1])
     utils.cmdedit(action, c[1], c[2], c[3])
   else
-    utils.vimgrep_fzf(res, preview(fn.expand("<cword>")), nil)
+    coroutine.wrap(function()
+      utils.vimgrep_fzf(res, preview(fn.expand("<cword>")))
+    end)()
   end
 end
 
@@ -77,13 +79,15 @@ end
 
 function M.workspace_symbol()
   local bufnr = fn.bufnr()
-  utils.fzf_live(function(query, pipe)
-    local r = a.await(request(bufnr, "workspace/symbol", { query = query }))
-    if r ~= nil then
-      a.await(a.uv.write(pipe, symbols_to_vimgrep(r)))
-      a.await(a.uv.close(pipe))
-    end
-  end, nil)
+  coroutine.wrap(function()
+    utils.fzf_live(function(query, pipe)
+      local r = a.await(request(bufnr, "workspace/symbol", { query = query }))
+      if r ~= nil then
+        a.await(a.uv.write(pipe, symbols_to_vimgrep(r)))
+        a.await(a.uv.close(pipe))
+      end
+    end)
+  end)()
 end
 
 return M
