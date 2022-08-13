@@ -82,14 +82,99 @@ function M.load(args)
   end
 end
 
-function M.complete(args)
+local function split(str, sep)
+  local fields = {}
+
+  local pattern = string.format("([^%s]+)", sep)
+  local _ = string.gsub(str, pattern, function(c)
+    fields[#fields + 1] = c
+  end)
+
+  return fields
+end
+
+local function path_complete(path, cursor)
   local list = {}
-  if #args == 0 then
-    for key, _ in pairs(command) do
-      list[#list + 1] = "--" .. key
+
+  if (path ~= nil and cursor == "/") or (path == nil and cursor == " ")  then
+    local dir = path or "."
+    for name, type in vim.fs.dir(dir) do
+      if type == "directory" and string.sub(name, 1, 1) ~= "." then
+        list[#list+1] = (path or "") .. name .. "/"
+      end
     end
-    return list
+  elseif path ~= nil then
+    local last = 1
+    local cur = string.find(path, "/")
+    while cur ~= nil and cur < string.len(path) do
+      last = cur
+      cur = cur + 1
+      cur = string.find(path, "/", cur)
+    end
+    local dir
+    if last == 1 then
+      dir = "."
+    else
+      dir = string.sub(path, 1, last)
+    end
+    local match = string.sub(path, last)
+    for name, type in vim.fs.dir(dir) do
+      if type == "directory" and string.sub(name, 1, 1) ~= "." then
+        if string.find(name, match) then
+          list[#list+1] = dir .. name .. "/"
+        end
+      end
+    end
   end
+
+  return list
+end
+
+local function gen_cmds()
+  local list = {}
+  for key, _ in pairs(command) do
+    list[#list + 1] = "--" .. key
+  end
+  return list
+end
+
+function M.complete(_, line, pos)
+  local args = split(line, " ")
+  local num = #args
+
+  if num == 1 then
+    return gen_cmds()
+  elseif num == 2 and string.sub(line, pos, pos) ~= " " then
+
+    if args[2] == "--gtags" then
+      return { "-d", "-r" }
+    end
+
+    local sub = string.find(args[2], "--")
+    if sub ~= nil then
+      local list = {}
+      local sub_str = string.sub(args[2], 3)
+      for key, _ in pairs(command) do
+        if string.find(key, sub_str) ~= nil then
+          list[#list + 1] = "--" .. key
+        end
+      end
+      if #list == 0 then
+        return gen_cmds()
+      end
+      return list
+    end
+
+  elseif num == 3 or num == 4 then
+
+    if args[2] == "--rg" then
+      local cursor = string.sub(line, pos, pos)
+      return path_complete(args[4], cursor)
+    end
+
+  end
+
+  return nil
 end
 
 return M

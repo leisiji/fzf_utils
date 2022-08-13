@@ -3,8 +3,8 @@ a.nvim_create_user_command("FzfCommand", function(input)
   require("fzf_utils.commands").load(input.fargs)
 end, {
   nargs = "+",
-  complete = function(args)
-    require("fzf_utils.commands").complete(args)
+  complete = function(arg, line, pos)
+    return require("fzf_utils.commands").complete(arg, line, pos)
   end,
 })
 
