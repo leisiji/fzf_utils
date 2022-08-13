@@ -35,7 +35,7 @@ end
 
 local function live_grep(args)
   local rg = get_fzf("rg")
-    local path = args[3]
+    local path = args[2]
     if path ~= nil then
       path = vim.fn.shellescape(path)
     end
@@ -180,9 +180,11 @@ function M.complete(_, line, pos)
       return list
     end
   elseif num == 3 or num == 4 then
+    local cursor = string.sub(line, pos, pos)
     if args[2] == "--rg" then
-      local cursor = string.sub(line, pos, pos)
       return path_complete(args[4], cursor)
+    elseif args[2] == "--live_grep" then
+      return path_complete(args[3], cursor)
     end
   end
 
