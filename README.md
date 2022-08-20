@@ -19,6 +19,7 @@ A [nvim-fzf](https://github.com/vijaymarupudi/nvim-fzf) plugin that provides:
 - [bat](https://github.com/sharkdp/bat)
 - [ripgrep](https://github.com/BurntSushi/ripgrep)
 - [fd-find](https://github.com/sharkdp/fd)
+- [fzf >= 0.30.0](https://github.com/junegunn/fzf)
 
 ## Usage
 
@@ -44,6 +45,7 @@ FzfCommand --gtags --update
 " rg
 FzfCommand --rg --all-buffers {word}
 FzfCommand --rg {word} [path]
+FzfCommand --live_grep [path]
 
 " Lsp provide default jump action, if there is only one result.
 " If there are multiple results, it will first display the results in fzf.

@@ -95,7 +95,7 @@ function M.fzf_live(fn)
   local preview = require("fzf_utils.float_preview").vimgrep_preview
   local act = preview() .. string.format(
     [[ --disabled \
-    --bind "alt-o:unbind(change,alt-o)+change-prompt(2. fzf> )+enable-search+clear-query" \
+    --bind "alt-o:unbind(change,alt-o)+change-prompt(fzf> )+enable-search+clear-query" \
     --bind "change:reload:sleep 1; %s {q}"]],
   ws_act)
   M.vimgrep_fzf({}, act)
