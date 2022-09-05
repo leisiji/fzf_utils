@@ -116,7 +116,7 @@ end
 
 local function get_current_func(items, row)
   if type(items) ~= 'table' then
-    return
+    return ""
   end
 
   for _, item in ipairs(items) do
@@ -134,7 +134,7 @@ local function get_current_func(items, row)
       if row >= start_line and row <= end_line then
         local kind = item.kind
         -- "rust mod" and "rust impl" and "cpp namespace"
-        if kind == 2 or kind == 3 or kind == 19 then
+        if (kind == 2 or kind == 3 or kind == 19) and item.children ~= nil then
           return get_current_func(item.children, row)
         else
           return item.name
