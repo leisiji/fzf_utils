@@ -114,30 +114,35 @@ local function show_context(context, rel_win)
   return w
 end
 
-local function parse_context(result, row)
-  if type(result) ~= "table" then
-    return nil
+local function get_current_func(items, row)
+  if type(items) ~= 'table' then
+    return
   end
 
-  for _, item in ipairs(result) do
+  for _, item in ipairs(items) do
     local sym_range = nil
-    if item.location then
+    if item.location then -- Item is a SymbolInformation
       sym_range = item.location.range
-    elseif item.range then
+    elseif item.range then -- Item is a DocumentSymbol
       sym_range = item.range
     end
 
     local start_line = sym_range.start.line
-    local end_line = sym_range["end"].line
+    local end_line = sym_range['end'].line
 
     if sym_range ~= nil then
       if row >= start_line and row <= end_line then
-        return item.name
+        local kind = item.kind
+        -- "rust mod" and "rust impl" and "cpp namespace"
+        if kind == 2 or kind == 3 or kind == 19 then
+          return get_current_func(item.children, row)
+        else
+          return item.name
+        end
       end
     end
   end
-
-  return nil
+  return ""
 end
 
 function PreviewWin:disp_context(context)
@@ -159,7 +164,7 @@ function PreviewWin:disp_lsp_context(buf, row)
     local params = { textDocument = lsp_util.make_text_document_params(buf) }
     local _, cancel = vim.lsp.buf_request(buf, "textDocument/documentSymbol", params, function(_, result, _, _)
       if self.win ~= nil then
-        local context = parse_context(result, row)
+        local context = get_current_func(result, row)
         if context ~= nil then
           self:disp_context(context)
         end
