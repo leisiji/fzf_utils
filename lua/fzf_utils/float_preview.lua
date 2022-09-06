@@ -165,7 +165,7 @@ function PreviewWin:disp_lsp_context(buf, row)
     local _, cancel = vim.lsp.buf_request(buf, "textDocument/documentSymbol", params, function(_, result, _, _)
       if self.win ~= nil then
         local context = get_current_func(result, row)
-        if context ~= nil then
+        if #context ~= 0 then
           self:disp_context(context)
         end
       end
