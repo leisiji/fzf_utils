@@ -20,18 +20,18 @@ end
 local function highlight_word(text, word)
   local len = string.len(text)
   local s = 1
-  local e
   local last = 1
   local res = ""
   local hi = string.format("\27[0;31m%s\27[0m", word)
+  local pattern = string.format([[\V\<%s\>]], word)
   while s <= len do
-    s, e = string.find(text, word, s)
-    if s ~= nil then
-      res = res .. string.sub(text, last, s - 1) .. hi
+    s = fn.match(text, pattern, s)
+    if s ~= -1 then
+      res = res .. string.sub(text, last, s) .. hi
     else
       break
     end
-    s = e + 1
+    s = s + #word + 1
     last = s
   end
   res = res .. string.sub(text, last)
