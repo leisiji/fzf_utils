@@ -17,24 +17,12 @@ local function gen_vimgrep(item)
   return s
 end
 
-local function highlight_word(text, word)
-  local len = string.len(text)
-  local s = 1
-  local last = 1
-  local res = ""
+local function highlight_word(text, word, col)
   local hi = string.format("\27[0;31m%s\27[0m", word)
-  local pattern = string.format([[\V\<%s\>]], word)
-  while s <= len do
-    s = fn.match(text, pattern, s)
-    if s ~= -1 then
-      res = res .. string.sub(text, last, s) .. hi
-    else
-      break
-    end
-    s = s + #word + 1
-    last = s
+  local res = string.sub(text, 1, col - 1) .. hi
+  if col <= #text then
+    res = res .. string.sub(text, col + #word)
   end
-  res = res .. string.sub(text, last)
   return res
 end
 
@@ -48,7 +36,7 @@ local function lsp_to_vimgrep(results, word)
         return { string.format("%s:%d:%d", fn.fnamemodify(item.filename, ":."), item.lnum, item.col) }
       else
         for _, item in pairs(items) do
-          item.text = highlight_word(item.text, word)
+          item.text = highlight_word(item.text, word, item.col)
           local s = gen_vimgrep(item)
           table.insert(greps, s)
         end
