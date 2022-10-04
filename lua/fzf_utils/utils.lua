@@ -33,7 +33,14 @@ end
 
 -- return: { path, line, column }
 function M.parse_vimgrep(content)
-  local res = { string.match(content, "(.-):(%d+):(%d*)") }
+  local mark = string.find(content, "")
+  local start
+  if mark ~= nil then
+    start = string.sub(content, mark + 3) --  is a utf-8 character, 3 bytes
+  else
+    start = content
+  end
+  local res = { string.match(start, "(.-):(%d+):(%d*)") }
   return { res[1], tonumber(res[2]), tonumber(res[3]) }
 end
 
@@ -93,11 +100,13 @@ function M.fzf_live(fn)
   end)
 
   local preview = require("fzf_utils.float_preview").vimgrep_preview
-  local act = preview() .. string.format(
-    [[ --disabled \
+  local act = preview()
+    .. string.format(
+      [[ --disabled \
     --bind "alt-o:unbind(change,alt-o)+change-prompt(fzf> )+enable-search+clear-query" \
     --bind "change:reload:sleep 1; %s {q}"]],
-  ws_act)
+      ws_act
+    )
   M.vimgrep_fzf({}, act)
 end
 
