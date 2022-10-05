@@ -39,7 +39,7 @@ function M.filetypes()
       ft_list[#ft_list + 1] = fn.fnamemodify(filetype, ":t:r")
     end
     local result = fzf(ft_list, "")
-    vim.cmd("set ft=" .. result[1])
+    vim.api.nvim_command("set ft=" .. result[1])
   end)()
 end
 
@@ -59,7 +59,7 @@ function M.help()
       windowcmd = "vertical"
     end
 
-    vim.cmd(string.format("%s h %s", windowcmd, choice))
+    vim.api.nvim_command(string.format("%s h %s", windowcmd, choice))
   end)()
 end
 
@@ -79,7 +79,7 @@ function M.cmdHists()
 
   coroutine.wrap(function()
     local result = fzf(cmds, "")
-    vim.cmd(result[1])
+    vim.api.nvim_command(result[1])
   end)()
 end
 

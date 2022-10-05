@@ -58,7 +58,12 @@ local function highlight_word(word, w)
 end
 
 local function create_buf(path)
-  local b = vim.fn.bufadd(path)
+  local b
+  if path == nil then
+    b = api.nvim_create_buf(false, true)
+  else
+    b = vim.fn.bufadd(path)
+  end
   api.nvim_buf_set_option(b, "bufhidden", "wipe")
   return b
 end
@@ -115,7 +120,7 @@ local function show_context(context, rel_win)
 end
 
 local function get_current_func(items, row)
-  if type(items) ~= 'table' then
+  if type(items) ~= "table" then
     return ""
   end
 
@@ -128,7 +133,7 @@ local function get_current_func(items, row)
     end
 
     local start_line = sym_range.start.line
-    local end_line = sym_range['end'].line
+    local end_line = sym_range["end"].line
 
     if sym_range ~= nil then
       if row >= start_line and row <= end_line then
@@ -272,12 +277,12 @@ function M.open_float_win(path, row, col, width, height, focus, zindex)
   local opts = {
     relative = "editor",
     border = "rounded",
-    width = width,
-    height = height,
+    width = math.floor(width),
+    height = math.floor(height),
     zindex = zindex or 60,
-    row = row,
-    col = col,
-    focusable = false,
+    row = math.floor(row),
+    col = math.floor(col),
+    focusable = focus or false,
   }
   local b = create_buf(path)
   local w = api.nvim_open_win(b, focus or false, opts)

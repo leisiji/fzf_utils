@@ -11,6 +11,7 @@ A [nvim-fzf](https://github.com/vijaymarupudi/nvim-fzf) plugin that provides:
 - vim: help, command history, filetypes
 - man
 - buffers
+- git commit
 
 ## Dependency
 
@@ -20,6 +21,7 @@ A [nvim-fzf](https://github.com/vijaymarupudi/nvim-fzf) plugin that provides:
 - [ripgrep](https://github.com/BurntSushi/ripgrep)
 - [fd-find](https://github.com/sharkdp/fd)
 - [fzf >= 0.30.0](https://github.com/junegunn/fzf)
+- [diffview.nvim](https://github.com/sindrets/diffview.nvim)
 
 ## Usage
 
@@ -31,6 +33,7 @@ FzfCommand --lines
 FzfCommand --ctags
 FzfCommand --buffers
 FzfCommand --man
+FzfCommand --commit " support preview and open commit in diffview.nvim
 
 " vim
 FzfCommand --vim help
@@ -64,3 +67,4 @@ FzfCommand --mru
 - [LeaderF](https://github.com/Yggdroot/LeaderF)
 - [nvim-fzf-commands](https://github.com/vijaymarupudi/nvim-fzf-commands)
 - [OneTerm.nvim](https://github.com/LoricAndre/OneTerm.nvim)
+- [nnn.nvim](https://github.com/luukvbaal/nnn.nvim)

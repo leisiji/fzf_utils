@@ -16,6 +16,8 @@ local function gtags_command(args)
     gtags.generate_gtags()
   elseif args[2] == "--update-buffer" then
     gtags.gtags_update_buffer()
+  elseif args[2] == "-s" then
+    gtags.find_symbol()
   end
 end
 
@@ -82,6 +84,7 @@ local command = {
   end,
   commit = fzf_commands.commit,
   live_grep = live_grep,
+  zoxide = fzf_commands.zoxide,
 }
 
 function M.load(args)
@@ -161,10 +164,6 @@ function M.complete(_, line, pos)
   if num == 1 then
     return gen_cmds()
   elseif num == 2 and string.sub(line, pos, pos) ~= " " then
-    if args[2] == "--gtags" then
-      return { "-d", "-r" }
-    end
-
     local sub = string.find(args[2], "--")
     if sub ~= nil then
       local list = {}
@@ -180,6 +179,10 @@ function M.complete(_, line, pos)
       return list
     end
   elseif num == 3 or num == 4 then
+    if num == 3 and args[2] == "--gtags" then
+      return { "-d", "-r", "-s" }
+    end
+
     local cursor = string.sub(line, pos, pos)
     if args[2] == "--rg" then
       return path_complete(args[4], cursor)

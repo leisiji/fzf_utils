@@ -2,8 +2,7 @@ local M = {}
 local expect_key = nil
 
 local function open_float_win(path, row, col)
-  local win_width = vim.api.nvim_win_get_width(0)
-  local w = math.floor(win_width * 0.5)
+  local w = vim.api.nvim_win_get_width(0) / 2
   local h = vim.api.nvim_win_get_height(0) / 2
   local pos = vim.api.nvim_win_get_cursor(0)
   local win = require("fzf_utils.float_preview").open_float_win(path, pos[1], pos[2], w, h, true, 40)
@@ -46,11 +45,11 @@ end
 
 function M.cmdedit(action, path, row, col)
   -- avoid second load
-  vim.cmd(string.format("%s %s", action, path))
+  vim.api.nvim_command(string.format("%s %s", action, path))
   if col ~= nil and row ~= nil then
     vim.api.nvim_win_set_cursor(0, { row, col })
   end
-  vim.cmd("normal! zz")
+  vim.api.nvim_command("normal! zz")
 end
 
 function M.handle_key(key, path, row, col)

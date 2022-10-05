@@ -31,6 +31,20 @@ function M.find_references(pattern)
   execute_global("-r", pattern)
 end
 
+function M.find_symbol()
+  coroutine.wrap(function()
+    utils.fzf_live(function(query, pipe)
+      local cmd = string.format([[global --result=grep -d -e "%s"]], query)
+      local r = vim.fn.system(cmd)
+      if r ~= nil then
+        local a = require("plenary.async_lib")
+        a.await(a.uv.write(pipe, r))
+        a.await(a.uv.close(pipe))
+      end
+    end)
+  end)()
+end
+
 function M.generate_gtags()
   local cmd = string.format("cd %s && gtags", vim.env.GTAGSROOT)
   fn.jobstart(cmd, {
@@ -44,7 +58,7 @@ function M.gtags_update_buffer()
   local file = fn.expand("%")
   fn.jobstart("gtags --single-update" .. file, {
     on_exit = function()
-      print("update " .. file .. " successfully")
+      vim.notify("gtags update " .. file .. " successfully", vim.log.levels.info)
     end,
   })
 end

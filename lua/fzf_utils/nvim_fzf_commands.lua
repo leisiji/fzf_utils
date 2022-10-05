@@ -83,15 +83,54 @@ function M.Man()
       local split_items = vim.split(choices[1], " ")
       local manpagename = split_items[1]
       local chapter = string.match(split_items[2], "%((.+)%)")
-      vim.cmd(string.format("vertical Man %s %s", chapter, manpagename))
+      api.nvim_command(string.format("vertical Man %s %s", chapter, manpagename))
     end
   end)()
 end
 
 function M.commit()
   coroutine.wrap(function()
-    local p = "--preview='git show --color {1}'"
-    fzf("git log --oneline --color", p)
+    local choices = fzf("git log --oneline --color", "--preview='git show --color {1} --stat'")
+    local res = choices[1]
+    local id = string.sub(res, 1, string.find(res, " ") - 1)
+    api.nvim_command("DiffviewOpen " .. id)
+  end)()
+end
+
+function M.zoxide()
+  if M.picker == nil then
+    M.picker = fn.tempname() .. "-nnnpicker"
+  end
+
+  coroutine.wrap(function()
+    local w = api.nvim_win_get_width(0)
+    local h = api.nvim_win_get_height(0)
+    local choices = fzf("zoxide query --list", "--preview='exa -l --colour=always {1}'")
+    if choices == nil then
+      return
+    end
+
+    local win, buf = require("fzf_utils.float_preview").open_float_win(nil, h / 4, w / 4, w / 2, h / 2, true)
+    api.nvim_buf_set_option(buf, "filetype", "nnn")
+
+    local cmd = string.format("nnn -p %s %s", M.picker, choices[1])
+    vim.fn.termopen(cmd, {
+      on_exit = function()
+        if api.nvim_win_is_valid(win) then
+          api.nvim_win_close(win, true)
+        end
+        local stat = vim.loop.fs_stat(M.picker)
+        if stat and stat.type == "file" then
+          for f in io.lines(M.picker) do
+            api.nvim_command("tabe " .. f)
+          end
+        end
+      end,
+    })
+    -- TODO: if no delay to startinsert, it will not take effect
+    vim.defer_fn(function()
+      vim.cmd("startinsert!")
+    end, 500)
   end)()
 end
 
