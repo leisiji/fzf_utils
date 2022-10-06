@@ -6,7 +6,7 @@ local request = require("plenary.async_lib.lsp").buf_request_all
 
 local function gen_vimgrep(item)
   local s = string.format(
-    "\27[0;35m%s\27[0m:\27[0;32m%d\27[0m %s         \27[0;30m%s:%d:%d\27[0m",
+    "\27[35m%s\27[0m:\27[32m%d\27[0m %s         \27[30m%s:%d:%d\27[0m",
     vim.fs.basename(item.filename),
     item.lnum,
     item.text,
@@ -18,7 +18,7 @@ local function gen_vimgrep(item)
 end
 
 local function highlight_word(text, word, col)
-  local hi = string.format("\27[0;31m%s\27[0m", word)
+  local hi = string.format("\27[31m%s\27[0m", word)
   local res = string.sub(text, 1, col - 1) .. hi
   if col <= #text then
     res = res .. string.sub(text, col + #word)
@@ -106,7 +106,7 @@ function M.document_symbol()
       if v.result then
         for _, item in pairs(v.result) do
           local col = item.range.start.line + 1
-          symbols[#symbols+1] = string.format("%d: \27[0;31m%s\27[0m %s", col, item.name, item.detail)
+          symbols[#symbols+1] = string.format("%d: %s \27[38;2;67;72;82m%s\27[0m", col, item.name, item.detail)
         end
       end
     end
