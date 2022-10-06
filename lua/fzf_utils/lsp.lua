@@ -68,7 +68,7 @@ local function lsp_async(method, action)
     params.context = { includeDeclaration = true }
     local r = a.await(request(0, method, params))
     if r == nil then
-      vim.notify(method + "not found", vim.log.levels.INFO)
+      vim.notify(method .. "not found", vim.log.levels.INFO)
     else
       lsp_handle(r, action)
     end
@@ -94,6 +94,30 @@ local function symbols_to_vimgrep(results)
     end
   end
   return greps
+end
+
+function M.document_symbol()
+  a.async_void(function()
+    local param = { textDocument = vim.lsp.util.make_text_document_params() }
+    local results = a.await(request(0, "textDocument/documentSymbol", param))
+    local symbols = {}
+
+    for _, v in pairs(results) do
+      if v.result then
+        for _, item in pairs(v.result) do
+          local col = item.range.start.line + 1
+          symbols[#symbols+1] = string.format("%d: \27[0;31m%s\27[0m %s", col, item.name, item.detail)
+        end
+      end
+    end
+
+    coroutine.wrap(function ()
+      local preview = require("fzf_utils.float_preview").get_preview_action
+      local cur_file = fn.expand("%:p")
+      local choices = require('fzf').fzf(symbols, preview(cur_file))
+      utils.handle_key(choices[1], cur_file, utils.get_leading_num(choices[2]), fn.getcurpos()[3])
+    end)()
+  end)()
 end
 
 function M.workspace_symbol()

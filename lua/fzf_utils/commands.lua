@@ -179,8 +179,12 @@ function M.complete(_, line, pos)
       return list
     end
   elseif num == 3 or num == 4 then
-    if num == 3 and args[2] == "--gtags" then
-      return { "-d", "-r", "-s" }
+    if num == 3 then
+      if args[2] == "--gtags"  then
+        return { "-d", "-r", "-s" }
+      elseif args[3] == "--lsp" then
+        return { "jump_def", "ref", "workspace_symbol", "document_symbol" }
+      end
     end
 
     local cursor = string.sub(line, pos, pos)

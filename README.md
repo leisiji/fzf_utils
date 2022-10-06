@@ -57,9 +57,24 @@ FzfCommand --lsp jump_def tab drop
 FzfCommand --lsp jump_def vsplit
 FzfCommand --lsp ref tab drop
 FzfCommand --lsp workspace_symbol
+FzfCommand --lsp document_symbol
 
 " mru
 FzfCommand --mru
+```
+
+prefer using `document_symbol`
+
+```lua
+vim.keymap.set("n", "<C-r>", function()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local client = vim.lsp.get_active_clients({ bufnr = bufnr })
+  if client ~= nil and #client ~= 0 then
+    vim.cmd("FzfCommand --lsp document_symbol")
+  else
+    vim.cmd("FzfCommand --ctags")
+  end
+end, { noremap = true, silent = true })
 ```
 
 ## Inspiration
