@@ -98,11 +98,10 @@ end
 
 local function add_symbol(list, items)
   for _, item in pairs(items) do
+    local col = item.range.start.line + 1
+    list[#list+1] = string.format("%d: %s \27[38;2;67;72;82m%s\27[0m", col, item.name, item.detail or "")
     if utils.lsp_filter(item) then
       add_symbol(list, item.children)
-    else
-      local col = item.range.start.line + 1
-      list[#list+1] = string.format("%d: %s \27[38;2;67;72;82m%s\27[0m", col, item.name, item.detail)
     end
   end
 end
