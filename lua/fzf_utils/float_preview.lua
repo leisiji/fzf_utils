@@ -137,9 +137,7 @@ local function get_current_func(items, row)
 
     if sym_range ~= nil then
       if row >= start_line and row <= end_line then
-        local kind = item.kind
-        -- "rust mod" and "rust impl" and "cpp namespace"
-        if (kind == 2 or kind == 3 or kind == 19) and item.children ~= nil then
+        if u.lsp_filter(item) then
           return get_current_func(item.children, row)
         else
           return item.name
