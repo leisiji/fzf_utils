@@ -132,7 +132,7 @@ local function path_complete(path, cursor)
     end
     local dir
     if last == 1 then
-      dir = "."
+      dir = "./"
     else
       dir = string.sub(path, 1, last)
     end
