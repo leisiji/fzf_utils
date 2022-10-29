@@ -136,7 +136,7 @@ local function path_complete(path, cursor)
     else
       dir = string.sub(path, 1, last)
     end
-    local match = string.sub(path, last)
+    local match = string.sub(path, last + 1)
     for name, type in vim.fs.dir(dir) do
       if type == "directory" and string.sub(name, 1, 1) ~= "." then
         if string.find(name, match) then
