@@ -97,28 +97,6 @@ function PreviewWin:create_win(path)
   return w, b
 end
 
-local function show_context(context, rel_win)
-  local opts = {
-    relative = "win",
-    win = rel_win,
-    anchor = "NE",
-    border = "rounded",
-    width = #context,
-    height = 1,
-    zindex = 60,
-    row = 0,
-    col = api.nvim_win_get_width(rel_win),
-    style = "minimal",
-    focusable = false,
-  }
-  local b = api.nvim_create_buf(false, false)
-  api.nvim_buf_set_option(b, "bufhidden", "wipe")
-  api.nvim_buf_set_lines(b, 0, 0, true, { context })
-  local w = api.nvim_open_win(b, false, opts)
-  set_float_win_options(w)
-  return w
-end
-
 local function get_current_func(items, row)
   if type(items) ~= "table" then
     return ""
@@ -148,16 +126,6 @@ local function get_current_func(items, row)
   return ""
 end
 
-function PreviewWin:disp_context(context)
-  if self.context_win ~= nil then
-    local b = api.nvim_win_get_buf(self.context_win)
-    api.nvim_win_set_width(self.context_win, #context)
-    api.nvim_buf_set_lines(b, 0, -1, true, { context })
-  else
-    self.context_win = show_context(context, self.win)
-  end
-end
-
 function PreviewWin:disp_lsp_context(buf, row)
   if nil ~= self.lsp_cancel then
     self.lsp_cancel()
@@ -165,11 +133,14 @@ function PreviewWin:disp_lsp_context(buf, row)
   if #vim.lsp.get_active_clients({ bufnr = buf }) ~= 0 then
     local lsp_util = require("vim.lsp.util")
     local params = { textDocument = lsp_util.make_text_document_params(buf) }
-    local _, cancel = vim.lsp.buf_request(buf, "textDocument/documentSymbol", params, function(_, result, _, _)
+    local _, cancel = vim.lsp.buf_request(buf, "textDocument/documentSymbol", params, function(err, result, _, _)
+      if err ~= nil then
+        return
+      end
       if self.win ~= nil then
         local context = get_current_func(result, row)
         if #context ~= 0 then
-          self:disp_context(context)
+          api.nvim_win_set_option(self.win, "winbar", string.format("%%=%%{'%s' }", context))
         end
       end
     end)
