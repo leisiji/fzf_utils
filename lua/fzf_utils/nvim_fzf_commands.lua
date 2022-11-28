@@ -93,7 +93,8 @@ function M.commit()
     local choices = fzf("git log --oneline --color", "--preview='git show --color {1} --stat'")
     local res = choices[1]
     local id = string.sub(res, 1, string.find(res, " ") - 1)
-    api.nvim_command("DiffviewOpen " .. id)
+    local cmd = string.format("DiffviewOpen %s~1..%s", id, id)
+    api.nvim_command(cmd)
   end)()
 end
 
