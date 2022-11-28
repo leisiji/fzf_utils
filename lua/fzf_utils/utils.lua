@@ -35,7 +35,7 @@ function M.parse_vimgrep(content)
   local mark = string.find(content, "")
   local start
   if mark ~= nil then
-    start = string.sub(content, mark + 3) --  is a utf-8 character, 3 bytes
+    start = string.sub(content, mark + 4) --  is a utf-8 character, 3 bytes
   else
     start = content
   end

@@ -6,7 +6,7 @@ local request = require("plenary.async_lib.lsp").buf_request_all
 
 local function gen_vimgrep(item)
   local s = string.format(
-    "\27[35m%s\27[0m:\27[32m%d\27[0m %s         \27[30m%s:%d:%d\27[0m",
+    "\27[35m%s\27[0m:\27[32m%d\27[0m %s \27[30m %s:%d:%d\27[0m",
     vim.fs.basename(item.filename),
     item.lnum,
     item.text,
@@ -21,7 +21,8 @@ local function highlight_word(text, word, col)
   local hi = string.format("\27[31m%s\27[0m", word)
   local res = string.sub(text, 1, col - 1) .. hi
   if col <= #text then
-    res = res .. string.sub(text, col + #word)
+    -- remove space of head and tail
+    res = res:gsub("^[%s]+", "") .. string.sub(text, col + #word):gsub("[%s]+$", "")
   end
   return res
 end
