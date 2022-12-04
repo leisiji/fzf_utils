@@ -18,7 +18,13 @@ local function gen_vimgrep(item)
 end
 
 local function highlight_word(text, word, col)
-  local hi = string.format("\27[31m%s\27[0m", word)
+  local hi
+  local ori = string.sub(text, col, col + #word - 1)
+  if ori == word then
+    hi = string.format("\27[31m%s\27[0m", word)
+  else
+    hi = ori
+  end
   local res = string.sub(text, 1, col - 1) .. hi
   if col <= #text then
     -- remove space of head and tail
