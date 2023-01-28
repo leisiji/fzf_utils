@@ -21,6 +21,7 @@ function PreviewWin:new()
     match_id = nil,
     lsp_cancel = nil,
     timer = nil,
+    percent = 0.65,
   }
 
   local opt = vim.env["FZF_DEFAULT_OPTS"]
