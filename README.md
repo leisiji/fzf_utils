@@ -77,13 +77,6 @@ vim.keymap.set("n", "<C-r>", function()
 end, { noremap = true, silent = true })
 ```
 
-Although the preview is neovim's float window, but it still uses `FZF_DEFAULT_OPTS` to configure:
-
-```bash
-# place this in .bashrc or .zshrc
-export FZF_DEFAULT_OPTS='--ansi --reverse --cycle --preview-window=hidden:65%'
-```
-
 ## Inspiration
 
 - [LeaderF](https://github.com/Yggdroot/LeaderF)

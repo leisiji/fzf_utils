@@ -22,7 +22,6 @@ function PreviewWin:new()
     lsp_cancel = nil,
     timer = nil,
     percent = 0.65,
-    hidden = false,
   }
 
   local opt = vim.env["FZF_DEFAULT_OPTS"]
@@ -30,9 +29,6 @@ function PreviewWin:new()
     local percent = string.match(opt, ".*:(%d+)%.*")
     if percent ~= nil then
       object.percent = percent / 100
-    end
-    if string.find(opt, "hidden") ~= nil then
-      object.hidden = true
     end
   end
   object.keymaps = {
@@ -187,12 +183,8 @@ function PreviewWin:open_floating_win(path, l)
   self.path = path
 end
 
-function PreviewWin:fzf_preview(cmd)
-  local hidden = ""
-  if self.hidden then
-    hidden = ",hidden"
-  end
-  return string.format([[ --preview-window=1%s --preview=%s ]], hidden, cmd)
+local function fzf_preview(cmd)
+  return string.format([[ --preview-window=right,0 --preview=%s ]], cmd)
 end
 
 local function close_win(w)
@@ -279,12 +271,12 @@ function M.get_preview_action(path, word)
       return ""
     end
   end)
-  return u.expect_key() .. preview:fzf_preview(shell)
+  return u.expect_key() .. fzf_preview(shell)
 end
 
 function M.vimgrep_preview(word)
   preview.word = word
-  return preview:fzf_preview(act) .. u.expect_key()
+  return fzf_preview(act) .. u.expect_key()
 end
 
 return M
