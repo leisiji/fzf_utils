@@ -12,6 +12,7 @@ A [nvim-fzf](https://github.com/vijaymarupudi/nvim-fzf) plugin that provides:
 - man
 - buffers
 - git commit
+- neovim >= 0.9
 
 ## Dependency
 
