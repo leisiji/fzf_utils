@@ -131,22 +131,30 @@ function PreviewWin:disp_lsp_context(buf, row)
   if nil ~= self.lsp_cancel then
     self.lsp_cancel()
   end
-  if #vim.lsp.get_active_clients({ bufnr = buf }) ~= 0 then
-    local lsp_util = require("vim.lsp.util")
-    local params = { textDocument = lsp_util.make_text_document_params(buf) }
-    local _, cancel = vim.lsp.buf_request(buf, "textDocument/documentSymbol", params, function(err, result, _, _)
-      if err ~= nil then
-        return
-      end
-      if self.win ~= nil then
-        local context = get_current_func(result, row)
-        if #context ~= 0 then
-          api.nvim_win_set_option(self.win, "winbar", string.format("%%=%%{'%s' }", context))
-        end
-      end
-    end)
-    self.lsp_cancel = cancel
+
+  local supports_method = #(
+      vim.tbl_filter(function(client)
+        return client.supports_method("textDocument/documentSymbol")
+      end, vim.lsp.get_active_clients({ buf }))
+    ) > 0
+  if not supports_method then
+    return
   end
+
+  local lsp_util = require("vim.lsp.util")
+  local params = { textDocument = lsp_util.make_text_document_params(buf) }
+  local _, cancel = vim.lsp.buf_request(buf, "textDocument/documentSymbol", params, function(err, result, _, _)
+    if err ~= nil then
+      return
+    end
+    if self.win ~= nil then
+      local context = get_current_func(result, row)
+      if #context ~= 0 then
+        api.nvim_win_set_option(self.win, "winbar", string.format("%%=%%{'%s' }", context))
+      end
+    end
+  end)
+  self.lsp_cancel = cancel
 end
 
 function PreviewWin:open_floating_win_(path, l)
