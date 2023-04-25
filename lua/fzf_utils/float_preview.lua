@@ -262,6 +262,7 @@ function M.open_float_win(path, row, col, width, height, focus, zindex)
     col = math.floor(col),
     focusable = focus or false,
     title = path,
+    title_pos = "right"
   }
   local b = create_buf(path)
   local w = api.nvim_open_win(b, focus or false, opts)
