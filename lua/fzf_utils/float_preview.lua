@@ -60,12 +60,20 @@ end
 
 local function create_buf(path)
   local b
+  local exist = false
   if path == nil then
     b = api.nvim_create_buf(false, true)
   else
-    b = vim.fn.bufadd(path)
+    b = vim.fn.bufnr(path)
+    if b == -1 then
+      b = vim.fn.bufadd(path)
+    else
+      exist = true
+    end
   end
-  api.nvim_buf_set_option(b, "bufhidden", "wipe")
+  if not exist then
+    api.nvim_buf_set_option(b, "bufhidden", "wipe")
+  end
   return b
 end
 
