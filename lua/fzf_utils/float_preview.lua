@@ -176,6 +176,9 @@ function PreviewWin:open_floating_win_(path, l)
     b = create_buf(path)
     api.nvim_win_set_buf(self.win, b)
     set_float_win_options(self.win)
+    local config = api.nvim_win_get_config(self.win)
+    config.title = path
+    api.nvim_win_set_config(self.win, config)
   else
     b = api.nvim_win_get_buf(w)
   end
@@ -270,7 +273,7 @@ function M.open_float_win(path, row, col, width, height, focus, zindex)
     col = math.floor(col),
     focusable = focus or false,
     title = path,
-    title_pos = "right"
+    title_pos = "right",
   }
   local b = create_buf(path)
   local w = api.nvim_open_win(b, focus or false, opts)
