@@ -44,6 +44,8 @@ function M.parse_vimgrep(content)
 end
 
 function M.cmdedit(action, path, row, col)
+  require("fzf_utils.float_preview").close_preview_win()
+
   -- avoid second load
   vim.api.nvim_command(string.format("%s %s", action, path))
   if col ~= nil and row ~= nil then
