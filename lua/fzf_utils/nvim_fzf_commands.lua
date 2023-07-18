@@ -39,15 +39,19 @@ end
 function M.find_files()
   local FZF_CAHCE_FILES_DIR = fn.stdpath("cache") .. "/fzf_files/"
   local cache_file = FZF_CAHCE_FILES_DIR .. fn.sha256(fn.getcwd())
-  local command = "cat " .. cache_file
+  local command
 
   if fn.filereadable(cache_file) == 0 then
     if fn.isdirectory(FZF_CAHCE_FILES_DIR) == 0 then
       fn.mkdir(FZF_CAHCE_FILES_DIR)
     end
 
-    command = "fd -t f -L | tee " .. cache_file
+    command = (vim.env.FZF_DEFAULT_COMMAND or "fd -t f -L") .. "| tee "
+  else
+    command = "cat "
   end
+
+  command = command .. cache_file
 
   coroutine.wrap(function()
     local choices = fzf(command, utils.expect_key() .. "ctrl-r")
