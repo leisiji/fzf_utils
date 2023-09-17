@@ -80,14 +80,45 @@ function M.buffers()
   end)()
 end
 
+local function query_man()
+  local job = nil
+  local ws_act = require("fzf.actions").raw_async_action(function(pipe, args)
+    local a = require("plenary.async_lib")
+    if args[2] == "" or args[2] == nil then
+      a.async_void(a.uv.close(pipe))()
+      return
+    end
+
+    if job ~= nil then
+      vim.fn.jobstop(job)
+    end
+
+    local query = args[2]
+    local cmd = "apropos " .. query
+    a.async_void(function()
+      job = vim.fn.jobstart(cmd, {
+        on_stdout = function(_, data, _)
+          vim.loop.write(pipe, vim.fn.join(data, "\n"))
+        end,
+        on_exit = function()
+          vim.loop.close(pipe)
+        end,
+      })
+    end)()
+  end)
+
+  local choices = require("fzf").fzf({}, utils.live_act(ws_act))
+  return choices[1]
+end
+
 function M.Man()
   coroutine.wrap(function()
-    local choices = fzf("man -k .", "--tiebreak begin --nth 1,2")
-    if choices then
-      local split_items = vim.split(choices[1], " ")
-      local manpagename = split_items[1]
-      local chapter = string.match(split_items[2], "%((.+)%)")
-      api.nvim_command(string.format("vertical Man %s %s", chapter, manpagename))
+    local res = query_man()
+    if res ~= nil then
+      local s, e = string.find(res, "%(")
+      local name = vim.split(string.sub(res, 1, s - 1), ",")[1]
+      local chap = string.match(string.sub(res, s + 1, -1), "(%d+).+")
+      api.nvim_command(string.format("vertical Man %s %s", chap, name))
     end
   end)()
 end

@@ -80,6 +80,15 @@ M.readfile = async(function(path)
   return data
 end)
 
+function M.live_act(act)
+  return string.format(
+    [[ --disabled \
+    --bind "alt-o:unbind(change,alt-o)+change-prompt(fzf> )+enable-search+clear-query" \
+    --bind "change:reload:sleep 1; %s {q}"]],
+    act
+  )
+end
+
 function M.vimgrep_fzf(res, act)
   local choices = require("fzf").fzf(res, act)
   local c = M.parse_vimgrep(choices[2])
@@ -101,13 +110,7 @@ function M.fzf_live(fn)
   end)
 
   local preview = require("fzf_utils.float_preview").vimgrep_preview
-  local act = preview()
-    .. string.format(
-      [[ --disabled \
-    --bind "alt-o:unbind(change,alt-o)+change-prompt(fzf> )+enable-search+clear-query" \
-    --bind "change:reload:sleep 1; %s {q}"]],
-      ws_act
-    )
+  local act = preview() .. M.live_act(ws_act)
   M.vimgrep_fzf({}, act)
 end
 
