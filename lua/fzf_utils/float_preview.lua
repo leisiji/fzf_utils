@@ -71,6 +71,7 @@ local function create_buf(path)
       exist = true
     end
   end
+  vim.bo[b].syntax = "on"
   if not exist then
     api.nvim_buf_set_option(b, "bufhidden", "wipe")
   end
