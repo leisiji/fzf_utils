@@ -19,7 +19,6 @@ function PreviewWin:new()
     toggled = false,
     word = nil,
     match_id = nil,
-    lsp_cancel = nil,
     timer = nil,
     percent = 0.65,
   }
@@ -58,23 +57,10 @@ local function highlight_word(word, w)
   return vim.fn.matchadd("LspReferenceText", string.format([[\V\<%s\>]], word), 11, -1, { window = w })
 end
 
-local function create_buf(path)
-  local b
-  local exist = false
-  if path == nil then
-    b = api.nvim_create_buf(false, true)
-  else
-    b = vim.fn.bufnr(path)
-    if b == -1 then
-      b = vim.fn.bufadd(path)
-    else
-      exist = true
-    end
-  end
-  vim.bo[b].syntax = "on"
-  if not exist then
-    api.nvim_buf_set_option(b, "bufhidden", "wipe")
-  end
+local function create_buf(w, path)
+  vim.fn.win_execute(w, "e " .. path)
+  local b = vim.fn.winbufnr(w)
+  api.nvim_buf_set_option(b, "bufhidden", "wipe")
   return b
 end
 
@@ -137,10 +123,6 @@ local function get_current_func(items, row)
 end
 
 function PreviewWin:disp_lsp_context(buf, row)
-  if nil ~= self.lsp_cancel then
-    self.lsp_cancel()
-  end
-
   local supports_method = #(
       vim.tbl_filter(function(client)
         return client.supports_method("textDocument/documentSymbol")
@@ -163,7 +145,6 @@ function PreviewWin:disp_lsp_context(buf, row)
       end
     end
   end)
-  self.lsp_cancel = cancel
 end
 
 function PreviewWin:open_floating_win_(path, l)
@@ -174,8 +155,7 @@ function PreviewWin:open_floating_win_(path, l)
     w, b = self:create_win(path)
     self.win = w
   elseif path ~= self.prev_path then
-    b = create_buf(path)
-    api.nvim_win_set_buf(self.win, b)
+    b = create_buf(w, path)
     set_float_win_options(self.win)
     local config = api.nvim_win_get_config(self.win)
     config.title = path
@@ -214,14 +194,10 @@ local function close_win(w)
 end
 
 function PreviewWin:close_float_win()
-  if nil ~= self.lsp_cancel then
-    self.lsp_cancel()
-  end
   self.prev_path = nil
   self.toggled = false
   self.match_id = nil
   self.word = nil
-  self.lsp_cancel = nil
   close_win(self.win)
   close_win(self.context_win)
   self.win = nil
@@ -276,8 +252,8 @@ function M.open_float_win(path, row, col, width, height, focus, zindex)
     title = path,
     title_pos = "right",
   }
-  local b = create_buf(path)
-  local w = api.nvim_open_win(b, focus or false, opts)
+  local w = api.nvim_open_win(0, focus or false, opts)
+  local b = create_buf(w, path)
 
   set_float_win_options(w)
   w_exe(w, "zz")
