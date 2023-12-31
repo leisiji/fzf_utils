@@ -107,7 +107,8 @@ local function add_symbol(list, items)
   for _, item in pairs(items) do
     local col = item.range.start.line + 1
     list[#list+1] = string.format("%d: %s \27[38;2;67;72;82m%s\27[0m", col, item.name, item.detail or "")
-    if utils.lsp_filter(item) then
+    -- function (kind=12) deeping skips, as function has local variables
+    if item.children ~= nil and item.kind ~= 12 then
       add_symbol(list, item.children)
     end
   end
@@ -119,6 +120,7 @@ function M.document_symbol()
     local results = a.await(request(0, "textDocument/documentSymbol", param))
     local symbols = {}
 
+    print(vim.inspect(results))
     for _, v in pairs(results) do
       if v.result then
         add_symbol(symbols, v.result)

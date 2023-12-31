@@ -49,8 +49,8 @@ end
 
 -- parse preview percentage and keymaps from fzf env
 local function set_float_win_options(w)
-  api.nvim_win_set_option(w, "signcolumn", "no")
-  api.nvim_win_set_option(w, "winhl", "NormalFloat:Normal")
+  api.nvim_set_option_value("signcolumn", "no", { win = w })
+  api.nvim_set_option_value("winhl", "NormalFloat:Normal", { win = w })
 end
 
 local function highlight_word(word, w)
@@ -60,7 +60,7 @@ end
 local function create_buf(w, path)
   vim.fn.win_execute(w, "e " .. path)
   local b = vim.fn.winbufnr(w)
-  api.nvim_buf_set_option(b, "bufhidden", "wipe")
+  api.nvim_set_option_value("bufhidden", "wipe", { buf = b })
   return b
 end
 
@@ -176,7 +176,10 @@ function M.scroll(line)
   else
     cmd = [[]]
   end
-  w_exe(preview.win, math.abs(line) .. cmd)
+  local w = preview.win
+  local res = api.nvim_win_get_cursor(w)
+  w_exe(w, math.abs(line) .. cmd)
+  api.nvim_win_set_cursor(w, { res[1] + line, res[2] })
 end
 
 function M.toggle_preview()
