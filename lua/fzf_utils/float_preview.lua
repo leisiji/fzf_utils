@@ -71,7 +71,7 @@ function PreviewWin:create_win(path)
   local width = math.floor(fzf_width * self.percent)
   local row = fzf_pos[2] + fzf_width - width
 
-  local w, b = M.open_float_win(path, fzf_pos[1], row, width, fzf_height)
+  local w = M.open_float_win(path, fzf_pos[1], row, width, fzf_height)
 
   -- buffer related
   for k, v in pairs(self.keymaps) do
@@ -90,83 +90,27 @@ function PreviewWin:create_win(path)
     self.match_id = highlight_word(word, w)
   end
 
-  return w, b
-end
-
-local function get_current_func(items, row)
-  if type(items) ~= "table" then
-    return ""
-  end
-
-  for _, item in ipairs(items) do
-    local sym_range = nil
-    if item.location then -- Item is a SymbolInformation
-      sym_range = item.location.range
-    elseif item.range then -- Item is a DocumentSymbol
-      sym_range = item.range
-    end
-
-    local start_line = sym_range.start.line
-    local end_line = sym_range["end"].line
-
-    if sym_range ~= nil then
-      if row >= start_line and row <= end_line then
-        if u.lsp_filter(item) then
-          return get_current_func(item.children, row)
-        else
-          return item.name
-        end
-      end
-    end
-  end
-  return ""
-end
-
-function PreviewWin:disp_lsp_context(buf, row)
-  local supports_method = #(
-      vim.tbl_filter(function(client)
-        return client.supports_method("textDocument/documentSymbol")
-      end, vim.lsp.get_active_clients({ buf }))
-    ) > 0
-  if not supports_method then
-    return
-  end
-
-  local lsp_util = require("vim.lsp.util")
-  local params = { textDocument = lsp_util.make_text_document_params(buf) }
-  local _, cancel = vim.lsp.buf_request(buf, "textDocument/documentSymbol", params, function(err, result, _, _)
-    if err ~= nil then
-      return
-    end
-    if self.win ~= nil then
-      local context = get_current_func(result, row)
-      if #context ~= 0 then
-        api.nvim_win_set_option(self.win, "winbar", string.format("%%=%%{'%s' }", context))
-      end
-    end
-  end)
+  return w
 end
 
 function PreviewWin:open_floating_win_(path, l)
   local w = self.win
-  local b
 
   if w == nil then
-    w, b = self:create_win(path)
+    w = self:create_win(path)
     self.win = w
   elseif path ~= self.prev_path then
-    b = create_buf(w, path)
+    create_buf(w, path)
     set_float_win_options(self.win)
     local config = api.nvim_win_get_config(self.win)
     config.title = path
     api.nvim_win_set_config(self.win, config)
   else
-    b = api.nvim_win_get_buf(w)
+    api.nvim_win_get_buf(w)
   end
 
   self.prev_path = path
   api.nvim_win_set_cursor(w, { l, 0 })
-  self:disp_lsp_context(b, l)
 end
 
 function PreviewWin:open_floating_win(path, l)

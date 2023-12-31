@@ -116,8 +116,8 @@ end
 
 -- "rust mod" and "rust impl" and "cpp namespace"
 function M.lsp_filter(item)
-  local kind = item.kind
-  return ((kind == 2 or kind == 3 or kind == 19) and item.children ~= nil)
+  return item.children ~= nil
+  --return ((kind == 2 or kind == 3 or kind == 19) and item.children ~= nil)
 end
 
 return M

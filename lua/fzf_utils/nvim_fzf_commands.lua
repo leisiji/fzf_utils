@@ -115,7 +115,7 @@ function M.Man()
   coroutine.wrap(function()
     local res = query_man()
     if res ~= nil then
-      local s, e = string.find(res, "%(")
+      local s = string.find(res, "%(")
       local name = vim.split(string.sub(res, 1, s - 1), ",")[1]
       local chap = string.match(string.sub(res, s + 1, -1), "(%d+).+")
       api.nvim_command(string.format("vertical Man %s %s", chap, name))
