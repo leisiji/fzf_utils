@@ -120,7 +120,6 @@ function M.document_symbol()
     local results = a.await(request(0, "textDocument/documentSymbol", param))
     local symbols = {}
 
-    print(vim.inspect(results))
     for _, v in pairs(results) do
       if v.result then
         add_symbol(symbols, v.result)
