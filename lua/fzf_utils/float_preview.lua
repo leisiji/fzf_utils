@@ -71,19 +71,19 @@ function PreviewWin:create_win(path)
   local width = math.floor(fzf_width * self.percent)
   local row = fzf_pos[2] + fzf_width - width
 
-  local w = M.open_float_win(path, fzf_pos[1], row, width, fzf_height)
-
   -- buffer related
-  for k, v in pairs(self.keymaps) do
-    api.nvim_buf_set_keymap(0, "t", k, v, { noremap = true })
-  end
   local bufnr = api.nvim_get_current_buf()
+  for k, v in pairs(self.keymaps) do
+    api.nvim_buf_set_keymap(bufnr, "t", k, v, { noremap = true, silent = true })
+  end
   api.nvim_clear_autocmds({ group = self.group, buffer = bufnr })
   api.nvim_create_autocmd({ "BufHidden" }, {
     group = self.group,
     callback = require("fzf_utils.float_preview").close_preview_win,
     buffer = bufnr,
   })
+
+  local w = M.open_float_win(path, fzf_pos[1], row, width, fzf_height)
 
   local word = self.word
   if word ~= nil then
@@ -172,9 +172,9 @@ end
 function M.scroll(line)
   local cmd
   if line > 0 then
-    cmd = [[]]
+    cmd = [[]]
   else
-    cmd = [[]]
+    cmd = [[]]
   end
   local w = preview.win
   local res = api.nvim_win_get_cursor(w)
