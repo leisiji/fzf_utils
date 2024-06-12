@@ -99,14 +99,12 @@ function PreviewWin:open_floating_win_(path, l)
   if w == nil then
     w = self:create_win(path)
     self.win = w
-  elseif path ~= self.prev_path then
+  else
     create_buf(w, path)
     set_float_win_options(self.win)
     local config = api.nvim_win_get_config(self.win)
     config.title = path
     api.nvim_win_set_config(self.win, config)
-  else
-    api.nvim_win_get_buf(w)
   end
 
   self.prev_path = path
