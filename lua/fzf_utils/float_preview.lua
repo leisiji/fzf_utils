@@ -177,7 +177,7 @@ function M.scroll(line)
   local w = preview.win
   local res = api.nvim_win_get_cursor(w)
   w_exe(w, math.abs(line) .. cmd)
-  api.nvim_win_set_cursor(w, { res[1] + line, res[2] })
+  pcall(api.nvim_win_set_cursor, w, { res[1] + line, res[2] })
 end
 
 function M.toggle_preview()
