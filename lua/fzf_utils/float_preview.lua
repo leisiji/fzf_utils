@@ -58,8 +58,14 @@ local function highlight_word(word, w)
 end
 
 local function create_buf(w, path)
-  vim.fn.win_execute(w, "e " .. path)
-  local b = vim.fn.winbufnr(w)
+  local b
+  if path ~= nil then
+    vim.fn.win_execute(w, "e " .. path)
+    b = vim.fn.winbufnr(w)
+  else
+    b = api.nvim_create_buf(false, true)
+    api.nvim_win_set_buf(w, b)
+  end
   api.nvim_set_option_value("bufhidden", "wipe", { buf = b })
   return b
 end
@@ -195,8 +201,10 @@ function M.open_float_win(path, row, col, width, height, focus, zindex)
     col = math.floor(col),
     focusable = focus or false,
     title = path,
-    title_pos = "right",
   }
+  if path ~= nil then
+    opts.title_pos = "right"
+  end
   local w = api.nvim_open_win(0, focus or false, opts)
   local b = create_buf(w, path)
 

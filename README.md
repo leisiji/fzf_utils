@@ -13,6 +13,8 @@ A [nvim-fzf](https://github.com/vijaymarupudi/nvim-fzf) plugin that provides:
 - buffers
 - git commit
 - neovim >= 0.9
+- joshuto
+- flatten.nvim (open files in joshuto)
 
 ## Dependency
 
@@ -83,4 +85,3 @@ end, { noremap = true, silent = true })
 - [LeaderF](https://github.com/Yggdroot/LeaderF)
 - [nvim-fzf-commands](https://github.com/vijaymarupudi/nvim-fzf-commands)
 - [OneTerm.nvim](https://github.com/LoricAndre/OneTerm.nvim)
-- [nnn.nvim](https://github.com/luukvbaal/nnn.nvim)

@@ -134,33 +134,28 @@ function M.commit()
 end
 
 function M.zoxide()
-  if M.picker == nil then
-    M.picker = fn.tempname() .. "-nnnpicker"
-  end
-
   coroutine.wrap(function()
     local w = api.nvim_win_get_width(0)
     local h = api.nvim_win_get_height(0)
-    local choices = fzf("zoxide query --list", "--preview='exa -l --colour=always {1}'")
+    local choices = fzf("zoxide query --list", "--preview='eza -l --color=always {1}'")
     if choices == nil then
       return
     end
 
-    local win, buf = require("fzf_utils.float_preview").open_float_win(nil, h / 4, w / 4, w / 2, h / 2, true)
-    api.nvim_buf_set_option(buf, "filetype", "nnn")
+    local _, buf = require("fzf_utils.float_preview").open_float_win(nil, h / 4, w / 4, w / 2, h / 2, true)
+    api.nvim_set_option_value("filetype", "joshuto", { buf = buf })
+    vim.cmd("cd " .. choices[1])
 
-    local cmd = string.format("nnn -p %s %s", M.picker, choices[1])
-    vim.fn.termopen(cmd, {
+    local cmd = string.format("joshuto --change-directory %s", choices[1])
+    local job = vim.fn.termopen(cmd, {
       on_exit = function()
-        if api.nvim_win_is_valid(win) then
-          api.nvim_win_close(win, true)
-        end
-        local stat = vim.loop.fs_stat(M.picker)
-        if stat and stat.type == "file" then
-          for f in io.lines(M.picker) do
-            api.nvim_command("tabe " .. f)
-          end
-        end
+        api.nvim_buf_delete(buf, { force = true, unload = false })
+      end,
+    })
+    vim.api.nvim_create_autocmd("BufLeave", {
+      buffer = buf,
+      callback = function()
+        vim.fn.jobstop(job)
       end,
     })
     -- TODO: if no delay to startinsert, it will not take effect
