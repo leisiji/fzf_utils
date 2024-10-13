@@ -25,14 +25,19 @@ function M.grep_lines()
     local col = fn.getcurpos()[3]
     local p = " --nth=2.. " .. preview(path)
     local cmd
-    if fn.filereadable(path) == 1 then
+    local is_file = fn.filereadable(path) == 1
+    if is_file then
       cmd = "cat -n " .. path
     else
       cmd = get_buf_lines()
     end
     local choices = fzf(cmd, p)
     local row = utils.get_leading_num(choices[2])
-    utils.handle_key(choices[1], path, row, col)
+    if is_file then
+      utils.handle_key(choices[1], path, row, col)
+    else
+      vim.api.nvim_win_set_cursor(0, { row, col })
+    end
   end)()
 end
 
