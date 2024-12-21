@@ -13,7 +13,6 @@ A [nvim-fzf](https://github.com/vijaymarupudi/nvim-fzf) plugin that provides:
 - buffers
 - git commit
 - neovim >= 0.9
-- joshuto
 - flatten.nvim (open files in joshuto)
 
 ## Dependency

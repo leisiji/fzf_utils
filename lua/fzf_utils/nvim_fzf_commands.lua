@@ -140,30 +140,12 @@ end
 
 function M.zoxide()
   coroutine.wrap(function()
-    local w = api.nvim_win_get_width(0)
-    local h = api.nvim_win_get_height(0)
     local choices = fzf("zoxide query --list", "--preview='eza -l --color=always {1}'")
     if choices == nil then
       return
     end
-
-    local _, buf = require("fzf_utils.float_preview").open_float_win(nil, h / 4, w / 4, w / 2, h / 2, true)
-    api.nvim_set_option_value("filetype", "joshuto", { buf = buf })
     vim.cmd("cd " .. choices[1])
-
-    local cmd = string.format("joshuto --change-directory %s", choices[1])
-    local job = vim.fn.termopen(cmd, {
-      on_exit = function()
-        api.nvim_buf_delete(buf, { force = true, unload = false })
-      end,
-    })
-    vim.api.nvim_create_autocmd("BufLeave", {
-      buffer = buf,
-      callback = function()
-        vim.fn.jobstop(job)
-      end,
-    })
-    -- TODO: if no delay to startinsert, it will not take effect
+    M.find_files()
     vim.defer_fn(function()
       vim.cmd("startinsert!")
     end, 500)
