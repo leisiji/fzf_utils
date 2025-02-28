@@ -4,6 +4,11 @@ local utils = require("fzf_utils.utils")
 local a = require("plenary.async_lib")
 local request = require("plenary.async_lib.lsp").buf_request_all
 
+local function get_offset_encoding(bufnr)
+  local client = vim.lsp.get_clients({ bufnr = bufnr })[1]
+  return client and client.offset_encoding or "utf-16"
+end
+
 local function gen_vimgrep(item)
   local s = string.format(
     "\27[35m%s\27[0m:\27[32m%d\27[0m %s \27[30m %s:%d:%d\27[0m",
@@ -90,11 +95,12 @@ function M.ref(action)
   lsp_async("textDocument/references", action or "edit")
 end
 
-local function symbols_to_vimgrep(results)
+local function symbols_to_vimgrep(results, bufnr)
   local greps = ""
   for _, v in pairs(results) do
     if v.result then
-      local symbols = lsp.util.symbols_to_items(v.result)
+      local offset_encoding = get_offset_encoding(bufnr)
+      local symbols = lsp.util.symbols_to_items(v.result, bufnr, offset_encoding)
       for _, symbol in pairs(symbols) do
         greps = greps .. gen_vimgrep(symbol) .. "\n"
       end
@@ -106,7 +112,7 @@ end
 local function add_symbol(list, items)
   for _, item in pairs(items) do
     local col = item.range.start.line + 1
-    list[#list+1] = string.format("%d: %s \27[38;2;67;72;82m%s\27[0m", col, item.name, item.detail or "")
+    list[#list + 1] = string.format("%d: %s \27[38;2;67;72;82m%s\27[0m", col, item.name, item.detail or "")
     -- function (kind=12) deeping skips, as function has local variables
     if item.children ~= nil and item.kind ~= 12 then
       add_symbol(list, item.children)
@@ -126,10 +132,10 @@ function M.document_symbol()
       end
     end
 
-    coroutine.wrap(function ()
+    coroutine.wrap(function()
       local preview = require("fzf_utils.float_preview").get_preview_action
       local cur_file = fn.expand("%:p")
-      local choices = require('fzf').fzf(symbols, preview(cur_file))
+      local choices = require("fzf").fzf(symbols, preview(cur_file))
       utils.handle_key(choices[1], cur_file, utils.get_leading_num(choices[2]), fn.getcurpos()[3])
     end)()
   end)()
@@ -141,7 +147,7 @@ function M.workspace_symbol()
     utils.fzf_live(function(query, pipe)
       local r = a.await(request(bufnr, "workspace/symbol", { query = query }))
       if r ~= nil then
-        a.await(a.uv.write(pipe, symbols_to_vimgrep(r)))
+        a.await(a.uv.write(pipe, symbols_to_vimgrep(r, bufnr)))
         a.await(a.uv.close(pipe))
       end
     end)
