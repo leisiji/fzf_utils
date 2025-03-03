@@ -76,9 +76,10 @@ end
 
 local function lsp_async(method, action)
   a.async_void(function()
-    local params = lsp.util.make_position_params(0, nil)
+    local bufnr = 0
+    local params = lsp.util.make_position_params(0, get_offset_encoding(bufnr))
     params.context = { includeDeclaration = true }
-    local r = a.await(request(0, method, params))
+    local r = a.await(request(bufnr, method, params))
     if r == nil then
       vim.notify(method .. "not found", vim.log.levels.INFO)
     else
