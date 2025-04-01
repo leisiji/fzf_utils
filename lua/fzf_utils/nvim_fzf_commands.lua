@@ -69,6 +69,29 @@ function M.find_files()
   end)()
 end
 
+function M.git_files()
+  local command = "git status -uno -s"
+
+  coroutine.wrap(function()
+    local action = require("fzf.helpers").choices_to_shell_cmd_previewer(function(items)
+      local str = items[1]
+      local preview_cmd = "git diff --color=always "
+      if str[1] == 'M' then
+        preview_cmd = preview_cmd .. "--cached "
+      end
+      local path = str:match("^%S+%s+(.*)")
+      preview_cmd = preview_cmd .. "HEAD -- " .. path
+      return preview_cmd
+    end)
+
+    local choices = fzf(command, utils.expect_key() .. "ctrl-r " .. "--preview=" .. action)
+    if choices[2] ~= nil and choices[2] ~= "" then
+      local path = choices[2]:match("^%S+%s+(.*)")
+      utils.handle_key(choices[1], path, nil, nil)
+    end
+  end)()
+end
+
 function M.buffers()
   coroutine.wrap(function()
     local items = {}

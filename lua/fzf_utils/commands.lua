@@ -71,6 +71,7 @@ end
 
 local command = {
   files = fzf_commands.find_files,
+  git_files = fzf_commands.git_files,
   lines = fzf_commands.grep_lines,
   rg = rg_command,
   ctags = ctags_command,
