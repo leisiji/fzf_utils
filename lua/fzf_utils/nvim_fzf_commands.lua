@@ -76,7 +76,7 @@ function M.git_files()
     local action = require("fzf.helpers").choices_to_shell_cmd_previewer(function(items)
       local str = items[1]
       local preview_cmd = "git diff --color=always "
-      if str[1] == 'M' then
+      if str[1] == "M" then
         preview_cmd = preview_cmd .. "--cached "
       end
       local path = str:match("^%S+%s+(.*)")
@@ -151,9 +151,20 @@ function M.Man()
   end)()
 end
 
-function M.commit()
+local function git_dir(cwd)
+  return vim.system({ "git", "rev-parse", "--show-toplevel" }, { cwd = cwd, text = true }):wait().stdout
+end
+
+function M.commit(args)
+  local path = args[2]
   coroutine.wrap(function()
-    local choices = fzf("git log --oneline --color", "--preview='git show --color {1} --stat'")
+    if path ~= nil then
+      local cwd = vim.fs.dirname(path)
+      local dir = git_dir(cwd)
+      vim.cmd("lcd " .. dir)
+    end
+    local git = string.format("git log --oneline --color %s", path or "")
+    local choices = fzf(git, "--preview='git show --color {1} --stat'")
     local res = choices[1]
     local id = string.sub(res, 1, string.find(res, " ") - 1)
     local cmd = string.format("DiffviewOpen %s~1..%s", id, id)
